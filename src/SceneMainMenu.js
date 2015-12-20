@@ -22,42 +22,91 @@ var MenuLayer = cc.Layer.extend({
         this._super();
 
         //2. get the screen size of your game canvas
-        var winsize = cc.director.getWinSize();
+        this.winsize = cc.director.getWinSize();
 
         //3. calculate the center point
-        var centerpos = cc.p(winsize.width / 2, winsize.height / 2);
+        this.centerpos = cc.p(this.winsize.width / 2, this.winsize.height / 2);
 
         //4. create a background image and set it's position at the center of the screen
         var spritebg = new cc.Sprite(res.imgBackground);
 
 
-        spritebg.setPosition(centerpos);
-        spritebg.setScale(winsize.width / spritebg.getContentSize().width);
+        spritebg.setPosition(this.centerpos);
+        spritebg.setScale(this.winsize.width / spritebg.getContentSize().width);
         this.addChild(spritebg);
 
-        //5.
+        this.createMenu();
+        this.updateMenu();
+    },
+
+    createMenu : function() {
         cc.MenuItemFont.setFontSize(60);
         cc.MenuItemFont.setFontName("AmericanTypewriter-Bold");
 
-        var mItemNewGame = new cc.MenuItemFont("New Game",this.onPlay,this);
-        var mItemResume = new cc.MenuItemFont("Resume",this.onPlay,this);
-        var mItemSoundOn = new cc.MenuItemFont("Sound: On",this.onPlay,this);
-        var mItemRate = new cc.MenuItemFont("Rate",this.onPlay,this);
-        var mItemHowToPlay = new cc.MenuItemFont("How To Play",this.onPlay,this);
+        this.mItemNewGame = new cc.MenuItemFont("New Game",this.onNewGame,this);
+        this.mItemResume = new cc.MenuItemFont("Resume",this.onResume,this);
+        this.mItemSoundOn = new cc.MenuItemFont("Sound: On",this.onSound,this);
+        this.mItemRate = new cc.MenuItemFont("Rate",this.onRate,this);
+        this.mItemHowToPlay = new cc.MenuItemFont("How To Play",this.onHowToPlay,this);
 
         var labelOffset = 100;
-        mItemNewGame.setPosition(new cc.Point(winsize.width/2,winsize.height/2 + 2*labelOffset));
-        mItemResume.setPosition(new cc.Point(winsize.width/2,winsize.height/2 + labelOffset));
-        mItemSoundOn.setPosition(new cc.Point(winsize.width/2,winsize.height/2));
-        mItemRate.setPosition(new cc.Point(winsize.width/2,winsize.height/2 - labelOffset));
-        mItemHowToPlay.setPosition(new cc.Point(winsize.width/2,winsize.height/2 - 2*labelOffset));
+        this.mItemNewGame.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 + 2*labelOffset));
+        this.mItemResume.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 + labelOffset));
+        this.mItemSoundOn.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2));
+        this.mItemRate.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - labelOffset));
+        this.mItemHowToPlay.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - 2*labelOffset));
 
-        var menu = cc.Menu.create(mItemNewGame,mItemResume,mItemSoundOn,mItemRate, mItemHowToPlay);
+        var menu = cc.Menu.create(this.mItemNewGame,this.mItemResume,this.mItemSoundOn,this.mItemRate, this.mItemHowToPlay);
         menu.setPosition(cc.p(0,0));
         this.addChild(menu);
     },
 
-    onPlay : function(){
-        cc.log("==onplay clicked");
+    updateMenu : function() {
+        if (PersistentStorage.GetValue("LASTGAME") == null)
+        {
+            this.mItemResume.setOpacity(120);
+        }
+        else
+        {
+            this.mItemResume.setOpacity(255);
+        }
+
+        if (PersistentStorage.GetValue("SOUND") == "OFF")
+        {
+            this.mItemSoundOn.setString("Sound: Off");
+        }
+        else
+        {
+            this.mItemSoundOn.setString("Sound: On");
+        }
+    },
+
+    onNewGame : function() {
+        cc.log("==onNewGame clicked");
+    },
+
+    onResume : function() {
+        cc.log("==onResume clicked");
+    },
+
+    onSound : function() {
+        if (PersistentStorage.GetValue("SOUND") == "OFF")
+        {
+            PersistentStorage.SetValue("SOUND", "ON");
+        }
+        else
+        {
+            PersistentStorage.SetValue("SOUND", "OFF");
+        }
+
+        this.updateMenu();
+    },
+
+    onRate : function() {
+        cc.log("==onRate clicked");
+    },
+
+    onHowToPlay : function() {
+        cc.log("==onHowToPlay clicked");
     }
 });
