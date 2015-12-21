@@ -14,6 +14,7 @@
     "jsList" : [
         "src/resource.js",
         "src/PersistentStorage.js",
+        "src/SceneTutorial.js",
         "src/SceneGame.js",
         "src/SceneGameSelection.js",
         "src/SceneMainMenu.js"
