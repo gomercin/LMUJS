@@ -109,6 +109,6 @@ var MenuLayer = cc.Layer.extend({
     onHowToPlay : function() {
         cc.log("==onHowToPlay clicked");
         //Director::getInstance()->replaceScene(TransitionFade::create(0.5, myScene, Color3B(0,255,255)));
-        cc.director.runScene(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
+        cc.director.pushScene(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
     }
 });
