@@ -82,7 +82,7 @@ var TutorialSprite = cc.Sprite.extend({
         {
             //return to main menu
             //cc.director.popScene();
-            PopSceneWithTransition();
+            CommonUtils.PopSceneWithTransition();
             //pushScene(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
 
         }

@@ -56,7 +56,7 @@ var MenuLayer = cc.Layer.extend({
         this.mItemRate.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - labelOffset));
         this.mItemHowToPlay.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - 2*labelOffset));
 
-        var menu = cc.Menu.create(this.mItemNewGame,this.mItemResume,this.mItemSoundOn,this.mItemRate, this.mItemHowToPlay);
+        var menu = new cc.Menu(this.mItemNewGame,this.mItemResume,this.mItemSoundOn,this.mItemRate, this.mItemHowToPlay);
         menu.setPosition(cc.p(0,0));
         this.addChild(menu);
     },
@@ -82,7 +82,8 @@ var MenuLayer = cc.Layer.extend({
     },
 
     onNewGame : function() {
-        cc.log("==onNewGame clicked");
+        cc.log("==newGame clicked");
+        cc.director.pushScene(new cc.TransitionFade(0.5, new GameSelectionScene(), cc.color(0,0,0)));
     },
 
     onResume : function() {
@@ -104,11 +105,28 @@ var MenuLayer = cc.Layer.extend({
 
     onRate : function() {
         cc.log("==onRate clicked");
+
+        if (cc.sys.isNative) {
+            var plugin = sdkbox.PluginReview;
+            plugin.setListener({
+                onDisplayAlert: function (data) {
+                    cc.log("didDisplayAlert")
+                },
+                onDeclineToRate: function (data) {
+                    cc.log("didDeclineToRate")
+                },
+                onRate: function (data) {
+                    cc.log("didToRate")
+                },
+                onRemindLater: function (data) {
+                    cc.log("didToRemindLater")
+                }
+            });
+            plugin.init();
+        }
     },
 
     onHowToPlay : function() {
-        cc.log("==onHowToPlay clicked");
-        //Director::getInstance()->replaceScene(TransitionFade::create(0.5, myScene, Color3B(0,255,255)));
         cc.director.pushScene(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
     }
 });
