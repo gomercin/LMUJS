@@ -8,7 +8,8 @@ var res = {
     imgTutorial1 : "res/tutorial1.jpg",
     imgTutorial2 : "res/tutorial2.jpg",
     imgTutorial3 : "res/tutorial3.jpg",
-    imgUndo : "res/undo.png"
+    imgUndo : "res/undo.png",
+    imgMenu : "res/menu.png"
 };
 
 var g_resources = [];
