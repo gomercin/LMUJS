@@ -32,6 +32,17 @@ var GameLayer = cc.Node.extend({
 
         this.winsize = cc.director.getWinSize();
 
+        this.centerpos = cc.p(this.winsize.width / 2, this.winsize.height / 2);
+
+        //4. create a background image and set it's position at the center of the screen
+        var spritebg = new cc.Sprite(res.imgBackground);
+
+
+        spritebg.setPosition(this.centerpos);
+        spritebg.setScale(this.winsize.width / spritebg.getContentSize().width);
+        this.addChild(spritebg);
+
+
         this.CreateMenu();
 
 
@@ -82,7 +93,7 @@ var GameBoard = cc.Node.extend({
     {
         var winSize = cc.director.getWinSize();
 
-        var stencil = this.shape(boardWidth * 0.8);
+        var stencil = this.gameMask(boardWidth);
         stencil.tag = 0;
         stencil.x = 0;
         stencil.y = 0;
@@ -97,25 +108,57 @@ var GameBoard = cc.Node.extend({
         clipper.setInverted(false);
         this.addChild(clipper);
 
-        var content = new cc.Sprite(res.imgStartColoredGame);
-        content.setScale(boardWidth / content.getContentSize().width);
+        var content = this.createGameBoard(boardWidth, gameSize); //new cc.Sprite(res.imgStartColoredGame);
+        //content.setScale(boardWidth / content.getContentSize().width);
         content.x = 0;
         content.y = 0;
         clipper.addChild(content);
 
     },
 
-    shape:function (boardWidth) {
+    gameMask:function (boardWidth) {
         var halfWidth = boardWidth / 2.0;
         var shape = new cc.DrawNode();
-        var triangle = [cc.p(-100, -100),cc.p(100, -100), cc.p(0, 100)];
+
         var rectangle = [cc.p(-halfWidth, -halfWidth),
                          cc.p(halfWidth, -halfWidth),
                          cc.p(halfWidth, halfWidth),
                          cc.p(-halfWidth, halfWidth)];
 
-        var green = cc.color(0, 255, 0, 255);
+        var green = cc.color(255, 255, 255, 255);
         shape.drawPoly(rectangle, green, 3, green);
         return shape;
-    }
+    },
+
+
+    createGameBoard : function(boardWidth, gameSize)
+    {
+        var gameBorderSize = 3;
+        var squareSize = ((boardWidth - gameBorderSize) / gameSize) - gameBorderSize;
+
+        var board = this.gameMask(boardWidth);
+
+        var multiplier = squareSize + gameBorderSize;
+        var offset = (squareSize  - boardWidth) / 2 + gameBorderSize;
+
+        for (row = 0; row < gameSize; row++) {
+            for (col = 0; col < gameSize; col++) {
+                var sq = new cc.Sprite(res.imgSquare);
+                sq.setColor(new cc.Color(Math.random() * 255, Math.random() * 255, Math.random() * 255, 0));
+                var x = col * multiplier + offset
+                var y = row * multiplier + offset;
+
+                sq.setPosition(x, y);
+                var scale = squareSize / sq.getContentSize().width;
+                
+                sq.setScale(scale);
+                board.addChild(sq);
+            }
+        }
+
+
+        return board;
+    },
+
+
 });
