@@ -73,6 +73,7 @@ var GameLayer = cc.Node.extend({
 
     onGameTypeTouch : function() {
         cc.log("in game menu clicked");
+        this.gameBoard.moveRow(1, 1);
     },
 
     onMenuTouch : function() {
@@ -82,15 +83,24 @@ var GameLayer = cc.Node.extend({
 });
 
 var GameBoard = cc.Node.extend({
+
+    boardNodes : [],
+    hiddenNodesTop : [],
+    hiddenNodesBottom : [],
+    hiddenNodesLeft : [],
+    hiddenNodesRight : [],
+
     ctor : function()
     {
         this._super();
+
 
 
     },
 
     initWithBoardAndGameSize : function (boardWidth, gameSize)
     {
+        this.gameSize = gameSize;
         var winSize = cc.director.getWinSize();
 
         var stencil = this.gameMask(boardWidth);
@@ -117,7 +127,7 @@ var GameBoard = cc.Node.extend({
     },
 
     gameMask:function (boardWidth) {
-        var halfWidth = boardWidth / 2.0;
+        var halfWidth = boardWidth / 2.0 - 2;
         var shape = new cc.DrawNode();
 
         var rectangle = [cc.p(-halfWidth, -halfWidth),
@@ -141,24 +151,131 @@ var GameBoard = cc.Node.extend({
         var multiplier = squareSize + gameBorderSize;
         var offset = (squareSize  - boardWidth) / 2 + gameBorderSize;
 
+        var actionDuration = 0.3;
+        this.moveLeftAction = new cc.MoveBy(actionDuration, -multiplier, 0);
+        this.moveRightAction = new cc.MoveBy(actionDuration, multiplier, 0);
+        this.moveUpAction = new cc.MoveBy(actionDuration, 0, multiplier);
+        this.moveDownAction = new cc.MoveBy(actionDuration, 0, -multiplier);
+
         for (row = 0; row < gameSize; row++) {
             for (col = 0; col < gameSize; col++) {
+                if (col == 0)
+                {
+                    this.boardNodes[row] = [];
+                }
+
                 var sq = new cc.Sprite(res.imgSquare);
-                sq.setColor(new cc.Color(Math.random() * 255, Math.random() * 255, Math.random() * 255, 0));
+                sq.setColor(new cc.Color((row + col) * 30, (row - col) * 30, (row * col) * 30, 0));
                 var x = col * multiplier + offset
                 var y = row * multiplier + offset;
 
                 sq.setPosition(x, y);
                 var scale = squareSize / sq.getContentSize().width;
-                
+
                 sq.setScale(scale);
                 board.addChild(sq);
+
+                this.boardNodes[row][col] = sq;
+
+                if (row == 0)
+                {
+                    //continue;
+                    this.hiddenNodesTop[col] = CommonUtils.CloneSprite(sq);
+                    this.hiddenNodesTop[col].setPosition(sq.x, gameSize * multiplier + offset);
+
+                    board.addChild(this.hiddenNodesTop[col]);
+                }
+                else if (row == gameSize - 1)
+                {
+                    //continue;
+                    this.hiddenNodesBottom[col] = CommonUtils.CloneSprite(sq);
+                    this.hiddenNodesBottom[col].setPosition(sq.x, -1 * multiplier + offset);
+
+                    board.addChild(this.hiddenNodesBottom[col]);
+                }
+
+                if (col ==0)
+                {
+                    //continue;
+                    this.hiddenNodesRight[row] = CommonUtils.CloneSprite(sq);
+                    this.hiddenNodesRight[row].setPosition(gameSize * multiplier + offset, sq.y);
+
+                    board.addChild(this.hiddenNodesRight[row]);
+
+                }
+                else if (col == gameSize - 1)
+                {
+                    //continue;
+                    this.hiddenNodesLeft[row] = CommonUtils.CloneSprite(sq);
+                    this.hiddenNodesLeft[row].setPosition(-1 * multiplier + offset, sq.y);
+
+                    board.addChild(this.hiddenNodesLeft[row]);
+                }
             }
         }
 
+        /*
+        var hiddenXBegin = 0;
+        var hiddenYBegin = 0;
 
+
+        asagidaki gibi yapmak yerine board arrayinin boyunu +2, +2'lik yapsan da kaydirma bitince arrayi duzeltsen, daha pratik gibi
+        for (i = 0; i < gameSize ; i++)
+        {
+            var topSq = CommonUtils.CloneSprite(boardNodes[gameSize - 1][i]);
+            this.hiddenNodesTop[i] = topSq;
+            this.hiddenNodesTop[i].setPosition(topSq.x, topSq.y + multiplier);
+            board.addChild(this.hiddenNodesTop[i]);
+
+            var bottomSq = CommonUtils.CloneSprite(boardNodes[0][gameSize - 1]);
+            this.hiddenNodesBottom[i] = bottomSq;
+            this.hiddenNodesBottom[i].setPosition(bottomSq.x, bottomSq.y - multiplier);
+            board.addChild(this.hiddenNodesBottom[i]);
+
+            var leftSq = CommonUtils.CloneSprite(boardNodes[i][gameSize - 1]);
+            this.hiddenNodesLeft[i] = leftSq;
+            this.hiddenNodesLeft[i].setPosition(leftSq.x - multiplier, leftSq.y);
+            board.addChild(this.hiddenNodesLeft[i]);
+
+            var rightSq = CommonUtils.CloneSprite(boardNodes[gameSize - 1][0]);
+            this.hiddenNodesRight[i] = rightSq
+            this.hiddenNodesRight[i].setPosition(rightSq.x + multiplier, rightSq.y);
+            board.addChild(this.hiddenNodesRight[i]);
+        }
+        */
+
+/*       g h i
+     c   a b c  a
+     f   d e f  d
+     i   g h i  g
+         a b c
+*/
         return board;
     },
 
+    moveRow : function(row, direction) {
+        var action = this.moveRightAction;
+
+        if (direction < 0)
+        {
+            action = this.moveLeftAction;
+            this.hiddenNodesRight[row].runAction(action.clone());
+        }
+        else
+        {
+            action = this.moveRightAction;
+            this.hiddenNodesLeft[row].runAction(action.clone());
+        }
+
+        for (i = 0; i< this.gameSize; i++)
+        {
+            var sq = this.boardNodes[row][i];
+            sq.runAction(action.clone());
+        }
+    },
+
+    moveColumn : function (col, direction) {
+
+    }
 
 });

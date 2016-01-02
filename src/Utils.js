@@ -18,3 +18,10 @@ CommonUtils.PopSceneWithTransition = function() {
      }
      */
 };
+
+CommonUtils.CloneSprite = function(sprite) {
+    var newNode = new cc.Sprite(sprite.getTexture());
+    newNode.setScale(sprite.getScale());
+    newNode.setColor(sprite.getColor());
+    return newNode;
+};
