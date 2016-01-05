@@ -72,8 +72,18 @@ var GameLayer = cc.Node.extend({
     },
 
     onGameTypeTouch : function() {
-        cc.log("in game menu clicked");
-        this.gameBoard.moveRow(1, 1);
+        cc.log("in game menu cl icked");
+
+        var rowcol = Math.floor((Math.random() * 100) % 5);
+        var dir = (Math.random() * 100) % 2 ==0 ? -1 : 1;
+        var sel = (Math.floor(Math.random() * 100)) % 2 ==0 ? -1 : 1;
+
+        cc.log("rowcol: " + rowcol + ", sel:" + sel);
+
+        if (sel == 1)
+            this.gameBoard.moveRow(rowcol, sel);
+        else
+            this.gameBoard.moveColumn(rowcol, sel);
     },
 
     onMenuTouch : function() {
@@ -84,26 +94,27 @@ var GameLayer = cc.Node.extend({
 
 var GameBoard = cc.Node.extend({
 
-    boardNodes : [],
-    hiddenNodesTop : [],
-    hiddenNodesBottom : [],
-    hiddenNodesLeft : [],
-    hiddenNodesRight : [],
+    boardNodes: [],
+    boardValues: [],
+    colors: [],
 
-    ctor : function()
-    {
+    isMoving: false,
+
+    ctor: function () {
         this._super();
-
 
 
     },
 
-    initWithBoardAndGameSize : function (boardWidth, gameSize)
-    {
+    initWithBoardAndGameSize: function (boardWidth, gameSize) {
         this.gameSize = gameSize;
+        this.boardWidth = boardWidth;
+
+        this.initColors();
+
         var winSize = cc.director.getWinSize();
 
-        var stencil = this.gameMask(boardWidth);
+        var stencil = this.gameMask();
         stencil.tag = 0;
         stencil.x = 0;
         stencil.y = 0;
@@ -118,7 +129,7 @@ var GameBoard = cc.Node.extend({
         clipper.setInverted(false);
         this.addChild(clipper);
 
-        var content = this.createGameBoard(boardWidth, gameSize); //new cc.Sprite(res.imgStartColoredGame);
+        var content = this.createGameBoard(); //new cc.Sprite(res.imgStartColoredGame);
         //content.setScale(boardWidth / content.getContentSize().width);
         content.x = 0;
         content.y = 0;
@@ -126,14 +137,25 @@ var GameBoard = cc.Node.extend({
 
     },
 
-    gameMask:function (boardWidth) {
-        var halfWidth = boardWidth / 2.0 - 2;
+    initColors: function () {
+        this.colors[0] = new cc.Color(255, 0, 0, 255);
+        this.colors[1] = new cc.Color(0, 255, 0, 255);
+        this.colors[2] = new cc.Color(0, 0, 255, 255);
+        this.colors[3] = new cc.Color(255, 255, 0, 255);
+        this.colors[4] = new cc.Color(255, 0, 255, 255);
+        this.colors[5] = new cc.Color(0, 255, 255, 255);
+        this.colors[6] = new cc.Color(128, 241, 87, 255);
+        this.colors[7] = new cc.Color(210, 87, 165, 255);
+    },
+
+    gameMask: function () {
+        var halfWidth = this.boardWidth * 2.0 - 2;
         var shape = new cc.DrawNode();
 
         var rectangle = [cc.p(-halfWidth, -halfWidth),
-                         cc.p(halfWidth, -halfWidth),
-                         cc.p(halfWidth, halfWidth),
-                         cc.p(-halfWidth, halfWidth)];
+            cc.p(halfWidth, -halfWidth),
+            cc.p(halfWidth, halfWidth),
+            cc.p(-halfWidth, halfWidth)];
 
         var green = cc.color(255, 255, 255, 255);
         shape.drawPoly(rectangle, green, 3, green);
@@ -141,141 +163,161 @@ var GameBoard = cc.Node.extend({
     },
 
 
-    createGameBoard : function(boardWidth, gameSize)
-    {
-        var gameBorderSize = 3;
-        var squareSize = ((boardWidth - gameBorderSize) / gameSize) - gameBorderSize;
+    createGameBoard: function () {
+        this.gameBorderSize = 3;
+        this.squareSize = ((this.boardWidth - this.gameBorderSize) / this.gameSize) - this.gameBorderSize;
 
-        var board = this.gameMask(boardWidth);
+        var board = this.gameMask();
 
-        var multiplier = squareSize + gameBorderSize;
-        var offset = (squareSize  - boardWidth) / 2 + gameBorderSize;
+        this.multiplier = this.squareSize + this.gameBorderSize;
+        this.offset = (this.squareSize - this.boardWidth) / 2 + this.gameBorderSize;
 
         var actionDuration = 0.3;
-        this.moveLeftAction = new cc.MoveBy(actionDuration, -multiplier, 0);
-        this.moveRightAction = new cc.MoveBy(actionDuration, multiplier, 0);
-        this.moveUpAction = new cc.MoveBy(actionDuration, 0, multiplier);
-        this.moveDownAction = new cc.MoveBy(actionDuration, 0, -multiplier);
+        this.moveLeftAction = new cc.MoveBy(actionDuration, -this.multiplier, 0);
+        this.moveRightAction = new cc.MoveBy(actionDuration, this.multiplier, 0);
+        this.moveUpAction = new cc.MoveBy(actionDuration, 0, this.multiplier);
+        this.moveDownAction = new cc.MoveBy(actionDuration, 0, -this.multiplier);
 
-        for (row = 0; row < gameSize; row++) {
-            for (col = 0; col < gameSize; col++) {
-                if (col == 0)
-                {
-                    this.boardNodes[row] = [];
-                }
+        for (row = 0; row < this.gameSize + 2; row++) {
+            this.boardNodes[row] = [];
+            this.boardValues[row] = [];
 
+            for (col = 0; col < this.gameSize + 2; col++) {
                 var sq = new cc.Sprite(res.imgSquare);
-                sq.setColor(new cc.Color((row + col) * 30, (row - col) * 30, (row * col) * 30, 0));
-                var x = col * multiplier + offset
-                var y = row * multiplier + offset;
+                var scale = this.squareSize / sq.getContentSize().width;
+                sq.setScale(scale);
+                var x = (col - 1) * this.multiplier + this.offset
+                var y = (row - 1) * this.multiplier + this.offset;
 
                 sq.setPosition(x, y);
-                var scale = squareSize / sq.getContentSize().width;
-
-                sq.setScale(scale);
                 board.addChild(sq);
 
                 this.boardNodes[row][col] = sq;
-
-                if (row == 0)
-                {
-                    //continue;
-                    this.hiddenNodesTop[col] = CommonUtils.CloneSprite(sq);
-                    this.hiddenNodesTop[col].setPosition(sq.x, gameSize * multiplier + offset);
-
-                    board.addChild(this.hiddenNodesTop[col]);
-                }
-                else if (row == gameSize - 1)
-                {
-                    //continue;
-                    this.hiddenNodesBottom[col] = CommonUtils.CloneSprite(sq);
-                    this.hiddenNodesBottom[col].setPosition(sq.x, -1 * multiplier + offset);
-
-                    board.addChild(this.hiddenNodesBottom[col]);
-                }
-
-                if (col ==0)
-                {
-                    //continue;
-                    this.hiddenNodesRight[row] = CommonUtils.CloneSprite(sq);
-                    this.hiddenNodesRight[row].setPosition(gameSize * multiplier + offset, sq.y);
-
-                    board.addChild(this.hiddenNodesRight[row]);
-
-                }
-                else if (col == gameSize - 1)
-                {
-                    //continue;
-                    this.hiddenNodesLeft[row] = CommonUtils.CloneSprite(sq);
-                    this.hiddenNodesLeft[row].setPosition(-1 * multiplier + offset, sq.y);
-
-                    board.addChild(this.hiddenNodesLeft[row]);
-                }
+                this.boardValues[row][col] = row;
             }
         }
 
-        /*
-        var hiddenXBegin = 0;
-        var hiddenYBegin = 0;
-
-
-        asagidaki gibi yapmak yerine board arrayinin boyunu +2, +2'lik yapsan da kaydirma bitince arrayi duzeltsen, daha pratik gibi
-        for (i = 0; i < gameSize ; i++)
-        {
-            var topSq = CommonUtils.CloneSprite(boardNodes[gameSize - 1][i]);
-            this.hiddenNodesTop[i] = topSq;
-            this.hiddenNodesTop[i].setPosition(topSq.x, topSq.y + multiplier);
-            board.addChild(this.hiddenNodesTop[i]);
-
-            var bottomSq = CommonUtils.CloneSprite(boardNodes[0][gameSize - 1]);
-            this.hiddenNodesBottom[i] = bottomSq;
-            this.hiddenNodesBottom[i].setPosition(bottomSq.x, bottomSq.y - multiplier);
-            board.addChild(this.hiddenNodesBottom[i]);
-
-            var leftSq = CommonUtils.CloneSprite(boardNodes[i][gameSize - 1]);
-            this.hiddenNodesLeft[i] = leftSq;
-            this.hiddenNodesLeft[i].setPosition(leftSq.x - multiplier, leftSq.y);
-            board.addChild(this.hiddenNodesLeft[i]);
-
-            var rightSq = CommonUtils.CloneSprite(boardNodes[gameSize - 1][0]);
-            this.hiddenNodesRight[i] = rightSq
-            this.hiddenNodesRight[i].setPosition(rightSq.x + multiplier, rightSq.y);
-            board.addChild(this.hiddenNodesRight[i]);
-        }
-        */
-
-/*       g h i
-     c   a b c  a
-     f   d e f  d
-     i   g h i  g
-         a b c
-*/
+        this.updateHiddenNodes();
+        this.redrawBoard();
         return board;
     },
 
-    moveRow : function(row, direction) {
-        var action = this.moveRightAction;
+    getColorFromValue: function (val) {
+        return this.colors[val];
+    },
 
-        if (direction < 0)
-        {
-            action = this.moveLeftAction;
-            this.hiddenNodesRight[row].runAction(action.clone());
-        }
-        else
-        {
-            action = this.moveRightAction;
-            this.hiddenNodesLeft[row].runAction(action.clone());
-        }
+    updateHiddenNodes: function () {
+        for (i = 0; i < this.gameSize + 2; i++) {
+            /*
+             this.boardNodes[0][row].setColor(this.boardNodes[this.gameSize][row].getColor());
+             this.boardNodes[this.gameSize+1][row].setColor(this.boardNodes[1][row].getColor());
+             this.boardNodes[row][0].setColor(this.boardNodes[row][this.gameSize].getColor());
+             this.boardNodes[row][this.gameSize+1].setColor(this.boardNodes[row][1].getColor());
+             */
 
-        for (i = 0; i< this.gameSize; i++)
-        {
-            var sq = this.boardNodes[row][i];
-            sq.runAction(action.clone());
+            this.boardValues[0][i] = this.boardValues[this.gameSize][i];
+            this.boardValues[this.gameSize + 1][i] = this.boardValues[1][i];
+
+            this.boardValues[i][0] = this.boardValues[i][this.gameSize];
+            this.boardValues[i][this.gameSize + 1] = this.boardValues[i][1];
         }
     },
 
-    moveColumn : function (col, direction) {
+    redrawBoard: function () {
+        this.updateHiddenNodes();
 
+        for (row = 0; row < this.gameSize + 2; row++) {
+
+            for (col = 0; col < this.gameSize + 2; col++) {
+                var sq = this.boardNodes[row][col];
+                sq.setColor(this.getColorFromValue(this.boardValues[row][col]));
+                var x = (col - 1) * this.multiplier + this.offset;
+                var y = (row - 1) * this.multiplier + this.offset;
+
+                sq.setPosition(x, y);
+
+                //this.boardValues[row][col] = row;
+            }
+        }
+    },
+
+    moveRow: function (row, direction) {
+
+        if (this.isMoving == true) return;
+
+        this.isMoving = true;
+
+        var action = this.moveRightAction;
+        var changeOffset = 0;
+        var loopStart, loopEnd, increment;
+
+        if (direction < 0) {
+            action = this.moveLeftAction;
+
+            loopStart = 0;
+            loopEnd = this.gameSize +1;
+            increment = 1;
+        }
+        else {
+            action = this.moveRightAction;
+
+            loopStart = this.gameSize + 1;
+            loopEnd = 0;
+            increment = -1;
+        }
+
+        for (i = 0; i < this.gameSize + 2; i++) {
+            var sq = this.boardNodes[row][i];
+            sq.runAction(action.clone());
+        }
+
+        this.boardValues[row][loopEnd] = this.boardValues[row][loopStart];
+
+        for (i = loopStart; i != loopEnd; i += increment) {
+            this.boardValues[row][i] = this.boardValues[row][i + increment];
+        }
+
+        this.isMoving = false;
+        this.redrawBoard();
+    },
+
+    moveColumn: function (col, direction) {
+        if (this.isMoving == true) return;
+
+        this.isMoving = true;
+
+        var action = this.moveUpAction;
+        var changeOffset = 0;
+        var loopStart, loopEnd, increment;
+
+        if (direction < 0) {
+            action = this.moveUpAction;
+
+            loopStart = 0;
+            loopEnd = this.gameSize +1;
+            increment = 1;
+        }
+        else {
+            action = this.moveDownAction;
+
+            loopStart = this.gameSize + 1;
+            loopEnd = 0;
+            increment = -1;
+        }
+
+        for (i = 0; i < this.gameSize + 2; i++) {
+            var sq = this.boardNodes[i][col];
+            sq.runAction(action.clone());
+        }
+
+        this.boardValues[loopEnd][col] = this.boardValues[loopStart][col];
+
+        for (i = loopStart; i != loopEnd; i += increment) {
+            this.boardValues[i][col] = this.boardValues[i+increment][col];
+        }
+
+        this.isMoving = false;
+        this.redrawBoard();
     }
 
 });
