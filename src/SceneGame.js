@@ -116,6 +116,9 @@ var GameBoard = cc.Node.extend({
 
     isMoving: false,
 
+    touchStartedAt : new cc.Point(-1000, -1000),
+    touchEndedAt : new cc.Point(-1000, -1000),
+
     ctor: function () {
         this._super();
 
@@ -153,6 +156,92 @@ var GameBoard = cc.Node.extend({
 
         this.createActions();
 
+        this.createTouchListener();
+    },
+
+    createTouchListener : function() {
+        cc.eventManager.addListener({
+            event: cc.EventListener.TOUCH_ONE_BY_ONE,
+            onTouchBegan: function (touch, event) {
+                var target = event.getCurrentTarget();
+
+                if (target instanceof GameBoard)
+                {
+                    var touchLoc = touch.getLocation();
+                    var locationInNode = target.convertToNodeSpace(touchLoc);
+
+                    target.touchStartedAt = locationInNode;
+                }
+
+                return true;
+            },
+            onTouchEnded: function (touch, event) {
+                var target = event.getCurrentTarget();
+
+                if ( target instanceof  GameBoard) {
+                    var touchLoc = touch.getLocation();
+                    var locationInNode = target.convertToNodeSpace(touchLoc);
+                    target.touchEndedAt = locationInNode;
+
+                    target.processTouch();
+                }
+            },
+
+            onTouchMoved: function (touch, event) {
+
+            }
+        }, this);
+    },
+
+    processTouch : function() {
+        //do we need to check if touches began and end withing board boundaries?
+        //it might be enough to check if it began withing the board to understand which row or column will be moved
+        //end position is only used for swipe direction reference,
+        //user might swipe outside the board
+
+        var swipeThreshold = 10;
+        var halfSize = this.boardWidth / 2.0;
+
+        if (Math.abs(this.touchStartedAt.x) < halfSize && Math.abs(this.touchStartedAt.y) < halfSize) {
+
+            var willMove = true;
+
+            var xDiff = this.touchEndedAt.x - this.touchStartedAt.x;
+            var yDiff = this.touchEndedAt.y - this.touchStartedAt.y;
+            var absXDiff = Math.abs(xDiff);
+            var absYDiff = Math.abs(yDiff);
+
+
+            var isHorizontalSwipe = true;
+
+            if (absXDiff < swipeThreshold) {
+                willMove = false;
+            }
+
+            if (absYDiff > absXDiff) {
+                isHorizontalSwipe = false;
+                willMove = true;
+
+                if (absYDiff < swipeThreshold)
+                {
+                    willMove = false;
+                }
+            }
+
+            if (willMove == true)
+            {
+                if (isHorizontalSwipe == true) {
+                    var row = Math.floor((this.touchStartedAt.y + halfSize) / this.multiplier);
+                    cc.log ("row: " + row + ", diff: " + xDiff);
+                    this.moveRow(row + 1, (xDiff > 0) ? this.DirectionEnum.RIGHT : this.DirectionEnum.LEFT);
+                }
+                else {
+                    var col = Math.floor((this.touchStartedAt.x + halfSize) / this.multiplier);
+                    cc.log ("col: " + col + ", diff: " + yDiff);
+                    this.moveColumn(col + 1, (yDiff > 0) ? this.DirectionEnum.UP : this.DirectionEnum.DOWN);
+                }
+            }
+        }
     },
 
     createActions : function() {
@@ -233,8 +322,8 @@ var GameBoard = cc.Node.extend({
                 var x = (col - 1) * this.multiplier + this.offset
                 var y = (row - 1) * this.multiplier + this.offset;
 
-                if (col == 2)
-                cc.log("x: " + x + ",y: " + y + ",row: " + row + ",col; " + col);
+                //if (col == 2)
+                //cc.log("x: " + x + ",y: " + y + ",row: " + row + ",col; " + col);
                 sq.setPosition(x, y);
                 board.addChild(sq);
 
@@ -283,13 +372,13 @@ var GameBoard = cc.Node.extend({
     },
 
     redrawBoard: function () {
-        cc.log("in redraw, before hidden nodes update");
-        this.printBoardValues();
+        //cc.log("in redraw, before hidden nodes update");
+        //this.printBoardValues();
 
         this.updateHiddenNodes();
 
-        cc.log("in redraw, after hidden nodes update");
-        this.printBoardValues();
+        //cc.log("in redraw, after hidden nodes update");
+        //this.printBoardValues();
 
         for (row = 0; row < this.gameSize + 2; row++) {
 
@@ -299,8 +388,8 @@ var GameBoard = cc.Node.extend({
                 var x = (col - 1) * this.multiplier + this.offset;
                 var y = (row - 1) * this.multiplier + this.offset;
 
-                if (col == 2)
-                cc.log("x: " + x + ",y: " + y + ",row: " + row + ",col; " + col);
+                //if (col == 2)
+                //cc.log("x: " + x + ",y: " + y + ",row: " + row + ",col; " + col);
                 sq.setPosition(x, y);
 
                 //this.boardValues[row][col] = row;
@@ -325,8 +414,8 @@ var GameBoard = cc.Node.extend({
             increment = -1;
         }
 
-        cc.log("before move row:" + dir);
-        this.printBoardValues();
+        //cc.log("before move row:" + dir);
+        //this.printBoardValues();
 
         for (i = loopStart; i != loopEnd; i += increment) {
             this.boardValues[row][i] = this.boardValues[row][i + increment];
@@ -334,8 +423,8 @@ var GameBoard = cc.Node.extend({
 
         this.boardValues[row][loopEnd] = this.boardValues[row][loopStart + increment];
 
-        cc.log("after move row:");
-        this.printBoardValues();
+        //cc.log("after move row:");
+        //this.printBoardValues();
     },
 
     moveColumnValues : function() {
@@ -355,8 +444,8 @@ var GameBoard = cc.Node.extend({
             increment = -1;
         }
 
-        cc.log("before move column:" + dir);
-        this.printBoardValues();
+        //cc.log("before move column:" + dir);
+        //this.printBoardValues();
 
         for (i = loopStart; i != loopEnd; i += increment) {
             this.boardValues[i][col] = this.boardValues[i+increment][col];
@@ -364,8 +453,8 @@ var GameBoard = cc.Node.extend({
 
         this.boardValues[loopEnd][col] = this.boardValues[loopStart + increment][col];
 
-        cc.log("after move column:");
-        this.printBoardValues();
+        //cc.log("after move column:");
+        //this.printBoardValues();
     },
 
     moveRow: function (row, direction) {
