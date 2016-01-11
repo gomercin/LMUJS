@@ -50,11 +50,11 @@ var MenuLayer = cc.Layer.extend({
         this.mItemHowToPlay = new cc.MenuItemFont("How To Play",this.onHowToPlay,this);
 
         var labelOffset = 100;
-        this.mItemNewGame.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 + 2*labelOffset));
-        this.mItemResume.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 + labelOffset));
-        this.mItemSoundOn.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2));
-        this.mItemRate.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - labelOffset));
-        this.mItemHowToPlay.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height/2 - 2*labelOffset));
+        this.mItemNewGame.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2 + 2*labelOffset));
+        this.mItemResume.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2 + labelOffset));
+        this.mItemSoundOn.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2));
+        this.mItemRate.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2 - labelOffset));
+        this.mItemHowToPlay.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2 - 2*labelOffset));
 
         var menu = new cc.Menu(this.mItemNewGame,this.mItemResume,this.mItemSoundOn,this.mItemRate, this.mItemHowToPlay);
         menu.setPosition(cc.p(0,0));

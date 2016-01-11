@@ -5,6 +5,7 @@ var res = {
     imgStartPhotoGame : "res/fotosec.png",
     imgSquare : "res/kare.png",
     imgPeek : "res/peek.png",
+    imgPeekHighlight : "res/peek_highlight.png",
     imgTutorial1 : "res/tutorial1.jpg",
     imgTutorial2 : "res/tutorial2.jpg",
     imgTutorial3 : "res/tutorial3.jpg",

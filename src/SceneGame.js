@@ -4,13 +4,20 @@
 
 
 var GameScene = cc.Scene.extend({
+
+    _gameType : 0,
+    _gameSize : 0,
+
     ctor : function(gameType, gameSize) {
         this._super();
+
+        this._gameType = gameType;
+        this._gameSize = gameSize;
     },
 
     onEnter:function () {
         this._super();
-        var layer = new GameLayer();
+        var layer = new GameLayer(this._gameType, this._gameSize);
         layer.init();
         this.addChild(layer);
     }
@@ -18,12 +25,15 @@ var GameScene = cc.Scene.extend({
 
 
 var GameLayer = cc.Node.extend({
-    ctor : function(){
+
+    isPeeking : false,
+
+    ctor : function(gameType, gameSize){
         //1. call super class's ctor function
         this._super();
 
-        this._gameSize = 3;
-        this._isColoredGame = true;
+        this._gameSize = gameSize;
+        this._isColoredGame = gameType;
 
         this._selectedSizeColor = new cc.Color(0x99, 0x00, 0xCC);
         this._notSelectedSizeColor = new cc.Color(0xFF, 0xFF, 0xFF);
@@ -46,69 +56,92 @@ var GameLayer = cc.Node.extend({
         this.CreateMenu();
 
 
-        this.gameBoard = new GameBoard();
-        this.gameBoard.initWithBoardAndGameSize(this.winsize.width * 0.8, 5);
+        this.gameBoard = new GameBoard(this._isColoredGame, this._gameSize);
+        this.gameBoard.initWithBoardSize(this.winsize.width * 0.8);
         this.gameBoard.setPosition(this.winsize.width / 2, this.winsize.height / 2);
+        this.gameBoard.surroundingLayer = this;
         this.addChild(this.gameBoard);
     },
 
     CreateMenu : function() {
-        this.mItemUndo = new cc.MenuItemImage(res.imgUndo, null, null, function(){this.onGameTypeTouch(false);}, this);
-        this.mItemUndo.setPosition(new cc.Point(this.winsize.width/4,this.winsize.height - this.topMargin));
+        this.topMargin = 75;
+        this.mItemUndo = new cc.MenuItemImage(res.imgUndo, res.imgUndo, res.imgUndo, function(){this.onUndoTouch();}, this);
+        this.mItemUndo.setPosition(cc.p(this.winsize.width/4,this.winsize.height - this.topMargin));
         this.mItemUndo.setScale(120.0 / this.mItemUndo.getContentSize().width);
+        this.mItemUndo.opacity = 100;
+        //this.mItemUndo.retain();
 
-        this.mItemMenu = new cc.MenuItemImage(res.imgMenu, null, null, function(){this.onMenuTouch();}, this);
-        this.mItemMenu.setPosition(new cc.Point(this.winsize.width/2,this.winsize.height - this.topMargin));
+        this.mItemMenu = new cc.MenuItemImage(res.imgMenu, res.imgMenu, res.imgMenu, function(){this.onMenuTouch();}, this);
+        this.mItemMenu.setPosition(cc.p(this.winsize.width/2,this.winsize.height - this.topMargin));
         this.mItemMenu.setScale(120.0 / this.mItemMenu.getContentSize().width);
+        //this.mItemMenu.retain();
 
-        this.mItemPeek = new cc.MenuItemImage(res.imgPeek, null, null, function(){this.onGameTypeTouch(true);}, this);
-        this.mItemPeek.setPosition(new cc.Point(3 * this.winsize.width/4,this.winsize.height - this.topMargin));
+        this.mItemPeek = new cc.MenuItemImage(res.imgPeek, res.imgPeek, res.imgPeek, function(){this.onPeekTouch();}, this);
+        this.mItemPeek.setPosition(cc.p(3 * this.winsize.width/4,this.winsize.height - this.topMargin));
         this.mItemPeek.setScale(120.0 / this.mItemPeek.getContentSize().width);
+        //this.mItemPeek.retain();
 
         var menu = new cc.Menu(this.mItemUndo, this.mItemMenu, this.mItemPeek);
 
-        menu.setPosition(cc.p(0,this.winsize.height - 75));
         this.addChild(menu);
+
+        //menu.setPosition(new cc.p(100,this.winsize.height - 75));
+
+        menu.setPosition(new cc.p(0 ,0));
     },
 
-    onGameTypeTouch : function() {
+    onUndoTouch : function() {
         cc.log("in game menu cl icked");
 
-        var rowcol = Math.floor((Math.random() * 100) % 5) + 1;
-        var dir = (((Math.floor(Math.random() * 100)) % 2) ==0) ? 1 : 2;
-        var sel = ((Math.floor(Math.random() * 100)) % 2);
-
-        //rowcol = 2;
-        //sel = 2;
-        //cc.log("rowcol: " + rowcol + ", sel:" + sel);
-
-        //this.gameBoard.moveColumn(rowcol, sel);
-
-        //return;
-        if (sel == 1)
-            this.gameBoard.moveRow(rowcol, dir);
+        if (this.gameBoard.undo() == true)
+        {
+            this.mItemUndo.opacity = 255;
+        }
         else
-            this.gameBoard.moveColumn(rowcol, dir + 2);
+        {
+            this.mItemUndo.opacity = 100;
+        }
+        return;
     },
 
     onMenuTouch : function() {
         cc.director.popToRootScene();
-    }
+    },
 
+    onPeekTouch : function() {
+        this.changePeekState(!this.isPeeking);
+    },
+
+    changePeekState : function(peekEnabled) {
+        this.isPeeking = peekEnabled;
+
+        this.mItemPeek.setNormalImage(new cc.Sprite(this.isPeeking ? res.imgPeekHighlight : res.imgPeek));
+        this.mItemPeek.setSelectedImage(new cc.Sprite(this.isPeeking ? res.imgPeekHighlight : res.imgPeek));
+
+        this.gameBoard.changePeekState(peekEnabled);
+    }
 });
+
+function GameMove(rowColVal, direction) {
+    this.rowColVal = rowColVal;
+    this.direction = direction;
+};
 
 var GameBoard = cc.Node.extend({
 
     DirectionEnum : {
         LEFT : 1,
-        RIGHT : 2,
-        UP : 3,
-        DOWN : 4
+        RIGHT : -1,
+        UP : 2,
+        DOWN : -2
     },
 
     boardNodes: [],
     boardValues: [],
+    originalBoardValues : [],
     colors: [],
+
+    moveHistory : [],
 
     currentRowColIndex : 0,
     currentDir : 1,
@@ -116,17 +149,29 @@ var GameBoard = cc.Node.extend({
 
     isMoving: false,
 
-    touchStartedAt : new cc.Point(-1000, -1000),
-    touchEndedAt : new cc.Point(-1000, -1000),
+    touchStartedAt : new cc.p(-1000, -1000),
+    touchEndedAt : new cc.p(-1000, -1000),
 
-    ctor: function () {
+    surroundingLayer : 0,
+
+    isPeeking : false,
+
+    ctor: function (gameType, gameSize) {
         this._super();
 
+        this.gameSize = gameSize;
+        this.gameType = gameType;
+
+        this.boardNodes = [];
+        this.boardValues = [];
+        this.originalBoardValues = [];
+        this.colors = [];
+        this.moveHistory = [];
+        this.isMoving = false;
 
     },
 
-    initWithBoardAndGameSize: function (boardWidth, gameSize) {
-        this.gameSize = gameSize;
+    initWithBoardSize: function (boardWidth) {
         this.boardWidth = boardWidth;
 
         this.initColors();
@@ -163,6 +208,13 @@ var GameBoard = cc.Node.extend({
         cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             onTouchBegan: function (touch, event) {
+
+
+                if (this.isPeeking == true)
+                {
+                    this.changePeekState(false);
+                }
+
                 var target = event.getCurrentTarget();
 
                 if (target instanceof GameBoard)
@@ -230,16 +282,19 @@ var GameBoard = cc.Node.extend({
 
             if (willMove == true)
             {
+                var rowColVal = 0;
+                var direction = this.DirectionEnum.LEFT;
+
                 if (isHorizontalSwipe == true) {
-                    var row = Math.floor((this.touchStartedAt.y + halfSize) / this.multiplier);
-                    cc.log ("row: " + row + ", diff: " + xDiff);
-                    this.moveRow(row + 1, (xDiff > 0) ? this.DirectionEnum.RIGHT : this.DirectionEnum.LEFT);
+                    rowColVal = Math.floor((this.touchStartedAt.y + halfSize) / this.multiplier) + 1;
+                    direction = (xDiff > 0) ? this.DirectionEnum.RIGHT : this.DirectionEnum.LEFT;
                 }
                 else {
-                    var col = Math.floor((this.touchStartedAt.x + halfSize) / this.multiplier);
-                    cc.log ("col: " + col + ", diff: " + yDiff);
-                    this.moveColumn(col + 1, (yDiff > 0) ? this.DirectionEnum.UP : this.DirectionEnum.DOWN);
+                    rowColVal = Math.floor((this.touchStartedAt.x + halfSize) / this.multiplier) + 1;
+                    direction = (yDiff > 0) ? this.DirectionEnum.UP : this.DirectionEnum.DOWN;
                 }
+
+                this.makeMove(new GameMove(rowColVal, direction));
             }
         }
     },
@@ -247,13 +302,13 @@ var GameBoard = cc.Node.extend({
     createActions : function() {
         var actionDuration = 0.3;
 
-        var upDownFunc = function(){
+        this.upDownFunc = function(){
                 this.moveColumnValues();
                 this.redrawBoard();
                 this.isMoving = false;
         };
 
-        var leftRightFunc = function() {
+        this.leftRightFunc = function() {
                 this.moveRowValues();
                 this.redrawBoard();
                 this.isMoving = false;
@@ -264,10 +319,21 @@ var GameBoard = cc.Node.extend({
         this.moveUpAction = new cc.MoveBy(actionDuration, 0, this.multiplier);
         this.moveDownAction = new cc.MoveBy(actionDuration, 0, -this.multiplier);
 
-        this.moveLeftActionForLast = new cc.sequence(this.moveLeftAction.clone(), new cc.callFunc(leftRightFunc, this));
-        this.moveRightActionForLast = new cc.sequence(this.moveRightAction.clone(), new cc.callFunc(leftRightFunc, this));
-        this.moveUpActionForLast = new cc.sequence(this.moveUpAction.clone(), new cc.callFunc(upDownFunc, this));
-        this.moveDownActionForLast = new cc.sequence(this.moveDownAction.clone(), new cc.callFunc(upDownFunc, this));
+        this.moveLeftActionForLast = new cc.Sequence(this.moveLeftAction.clone(), new cc.CallFunc(this.leftRightFunc, this));
+        this.moveRightActionForLast = new cc.Sequence(this.moveRightAction.clone(), new cc.CallFunc(this.leftRightFunc, this));
+        this.moveUpActionForLast = new cc.Sequence(this.moveUpAction.clone(), new cc.CallFunc(this.upDownFunc, this));
+        this.moveDownActionForLast = new cc.Sequence(this.moveDownAction.clone(), new cc.CallFunc(this.upDownFunc, this));
+
+        this.moveLeftAction.retain();
+        this.moveRightAction.retain();
+        this.moveUpAction.retain();
+        this.moveDownAction.retain();
+
+        this.moveLeftActionForLast.retain();
+        this.moveRightActionForLast.retain();
+        this.moveUpActionForLast.retain();
+        this.moveDownActionForLast.retain();
+                               
 /*
         this.moveLeftAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
         this.moveRightAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
@@ -285,6 +351,7 @@ var GameBoard = cc.Node.extend({
         this.colors[5] = new cc.Color(0, 255, 255, 255);
         this.colors[6] = new cc.Color(128, 241, 87, 255);
         this.colors[7] = new cc.Color(210, 87, 165, 255);
+        this.colors[8] = new cc.Color(50, 212, 98, 255);
     },
 
     gameMask: function () {
@@ -317,6 +384,7 @@ var GameBoard = cc.Node.extend({
 
             for (col = 0; col < this.gameSize + 2; col++) {
                 var sq = new cc.Sprite(res.imgSquare);
+                sq.retain();
                 var scale = this.squareSize / sq.getContentSize().width;
                 sq.setScale(scale);
                 var x = (col - 1) * this.multiplier + this.offset
@@ -333,11 +401,21 @@ var GameBoard = cc.Node.extend({
         }
 
         this.updateHiddenNodes();
+        for (row = 0; row < this.gameSize + 2; row++)
+        {
+            this.originalBoardValues[row] = [];
+
+            for(col=0; col< this.gameSize + 2; col++)
+            {
+                this.originalBoardValues[row][col] = this.boardValues[row][col];
+            }
+        }
         this.redrawBoard();
         return board;
     },
 
     getColorFromValue: function (val) {
+
         return this.colors[val];
     },
 
@@ -384,7 +462,7 @@ var GameBoard = cc.Node.extend({
 
             for (col = 0; col < this.gameSize + 2; col++) {
                 var sq = this.boardNodes[row][col];
-                sq.setColor(this.getColorFromValue(this.boardValues[row][col]));
+                sq.setColor(this.getColorFromValue( this.isPeeking ? this.originalBoardValues[row][col] : this.boardValues[row][col]));
                 var x = (col - 1) * this.multiplier + this.offset;
                 var y = (row - 1) * this.multiplier + this.offset;
 
@@ -458,14 +536,8 @@ var GameBoard = cc.Node.extend({
     },
 
     moveRow: function (row, direction) {
-
-        if (this.isMoving == true) return;
-
-
         this.currentDir = direction;
         this.currentRowColIndex = row;
-
-        this.isMoving = true;
 
         var action = this.moveRightAction;
         var actionForLast = this.moveRightActionForLast;
@@ -495,13 +567,8 @@ var GameBoard = cc.Node.extend({
     },
 
     moveColumn: function (col, direction) {
-        if (this.isMoving == true) return;
-
-
         this.currentDir = direction;
         this.currentRowColIndex = col;
-
-        this.isMoving = true;
 
         var action = this.moveUpAction;
         var lastAction = this.moveUpActionForLast;
@@ -526,6 +593,66 @@ var GameBoard = cc.Node.extend({
 
         //this.isMoving = false;
         //this.redrawBoard();
-    }
+    },
 
+    makeMove : function(move, saveToHistory) {
+        if (this.isMoving == true) return;
+        this.isMoving = true;
+
+        if (this.isPeeking == true)
+        {
+            this.changePeekState(false);
+        }
+
+        if (move.direction == this.DirectionEnum.LEFT ||
+            move.direction == this.DirectionEnum.RIGHT) {
+            this.moveRow(move.rowColVal, move.direction);
+        }
+        else {
+            this.moveColumn(move.rowColVal, move.direction);
+        }
+
+        if (typeof saveToHistory === "undefined" || saveToHistory == true) {
+            this.moveHistory.push(move);
+
+            if (this.surroundingLayer != 0)
+            {
+                this.surroundingLayer.mItemUndo.opacity = 255;
+            }
+        }
+    },
+
+    undo : function() {
+        if (this.isMoving == true)
+        {
+            cc.log("undo: rejected");
+            return true;
+        }
+
+        if (this.isPeeking == true)
+        {
+            this.changePeekState(false);
+        }
+
+        if (this.moveHistory.length > 0) {
+            var move = this.moveHistory.pop();
+            cc.log("undo: popped");
+            move.direction *= -1;
+
+            this.makeMove(move, false);
+        }
+
+        return this.moveHistory.length > 0;
+    },
+
+    changePeekState : function(isPeeking) {
+
+        if (this.isPeeking != isPeeking) {
+
+            this.isPeeking = isPeeking;
+
+            this.redrawBoard();
+            this.surroundingLayer.changePeekState(isPeeking);
+        }
+    }
 });
