@@ -128,5 +128,20 @@ var MenuLayer = cc.Layer.extend({
 
     onHowToPlay : function() {
         cc.director.pushScene(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
+    },
+
+    onEnter: function (){
+        this._super();
+
+        var savedGame = PersistentStorage.GetValue("SAVEDGAME");
+
+        if (savedGame != undefined && savedGame.length > 0)
+        {
+            this.mItemResume.opacity = 255;
+        }
+        else
+        {
+            this.mItemResume.opacity = 80;
+        }
     }
 });

@@ -93,6 +93,8 @@ var GameLayer = cc.Node.extend({
     onUndoTouch : function() {
         cc.log("in game menu cl icked");
 
+        this.gameBoard.undo()
+        /*
         if (this.gameBoard.undo() == true)
         {
             this.mItemUndo.opacity = 255;
@@ -101,6 +103,7 @@ var GameLayer = cc.Node.extend({
         {
             this.mItemUndo.opacity = 100;
         }
+        */
         return;
     },
 
@@ -173,6 +176,7 @@ var GameBoard = cc.Node.extend({
 
     initWithBoardSize: function (boardWidth) {
         this.boardWidth = boardWidth;
+        this.halfWidth = boardWidth / 2;
 
         this.initColors();
 
@@ -208,13 +212,6 @@ var GameBoard = cc.Node.extend({
         cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             onTouchBegan: function (touch, event) {
-
-
-                if (this.isPeeking == true)
-                {
-                    this.changePeekState(false);
-                }
-
                 var target = event.getCurrentTarget();
 
                 if (target instanceof GameBoard)
@@ -223,6 +220,12 @@ var GameBoard = cc.Node.extend({
                     var locationInNode = target.convertToNodeSpace(touchLoc);
 
                     target.touchStartedAt = locationInNode;
+
+                    if (Math.abs(locationInNode.x) <= target.halfWidth && Math.abs(locationInNode.y) <= target.halfWidth) {
+                        if (target.isPeeking == true) {
+                            target.changePeekState(false);
+                        }
+                    }
                 }
 
                 return true;
@@ -302,16 +305,30 @@ var GameBoard = cc.Node.extend({
     createActions : function() {
         var actionDuration = 0.3;
 
-        this.upDownFunc = function(){
-                this.moveColumnValues();
-                this.redrawBoard();
-                this.isMoving = false;
+        this.upDownFunc = function () {
+            this.moveColumnValues();
+            this.redrawBoard();
+            this.isMoving = false;
+
+            if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
+                this.surroundingLayer.mItemUndo.opacity = 255;
+            }
+            else {
+                this.surroundingLayer.mItemUndo.opacity = 100;
+            }
         };
 
-        this.leftRightFunc = function() {
-                this.moveRowValues();
-                this.redrawBoard();
-                this.isMoving = false;
+        this.leftRightFunc = function () {
+            this.moveRowValues();
+            this.redrawBoard();
+            this.isMoving = false;
+
+            if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
+                this.surroundingLayer.mItemUndo.opacity = 255;
+            }
+            else {
+                this.surroundingLayer.mItemUndo.opacity = 100;
+            }
         };
 
         this.moveLeftAction = new cc.MoveBy(actionDuration, -this.multiplier, 0);
@@ -333,13 +350,13 @@ var GameBoard = cc.Node.extend({
         this.moveRightActionForLast.retain();
         this.moveUpActionForLast.retain();
         this.moveDownActionForLast.retain();
-                               
-/*
-        this.moveLeftAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
-        this.moveRightAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
-        this.moveUpAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(upDownFunc, this));
-        this.moveDownAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(upDownFunc, this));
-        */
+
+        /*
+         this.moveLeftAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
+         this.moveRightAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(leftRightFunc, this));
+         this.moveUpAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(upDownFunc, this));
+         this.moveDownAction = new cc.sequence(new cc.MoveBy(actionDuration, 0, 0), new cc.callFunc(upDownFunc, this));
+         */
     },
 
     initColors: function () {
@@ -472,6 +489,10 @@ var GameBoard = cc.Node.extend({
 
                 //this.boardValues[row][col] = row;
             }
+        }
+
+        if (this.isPeeking == false) {
+            PersistentStorage.SetValue("SAVEDGAME", this.boardValues);
         }
     },
 

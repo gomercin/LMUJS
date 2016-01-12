@@ -55,15 +55,15 @@ var GameSelectionLayer = cc.Node.extend({
         this.mItemBack.setPosition(new cc.p(50, this.winsize.height - 35));
         this.mItemBack.setFontSize(30);
 
-        this.mItemGameType = new cc.MenuItemFont("Game Type:", this.onTouch, this);
+        this.mItemGameType = new cc.MenuItemFont("Game Type:", null, this);
         this.mItemGameType.setPosition(new cc.p(this.winsize.width/2,this.winsize.height/2 + 3.5*labelOffset));
         this.mItemGameType.setFontSize(30);
 
-        this.mItemPictureGame = new cc.MenuItemImage(res.imgStartPhotoGame, null, null, function(){this.onGameTypeTouch(false);}, this);
+        this.mItemPictureGame = new cc.MenuItemImage(res.imgStartPhotoGame, res.imgStartPhotoGame, res.imgStartPhotoGame, function(){this.onGameTypeTouch(false);}, this);
         this.mItemPictureGame.setPosition(new cc.p(this.winsize.width/2 - 1.3 * labelOffset,this.winsize.height/2 + 2*labelOffset));
         this.mItemPictureGame.setScale(200.0 / this.mItemPictureGame.getContentSize().width);
 
-        this.mItemColorGame = new cc.MenuItemImage(res.imgStartColoredGame, null, null, function(){this.onGameTypeTouch(true);}, this);
+        this.mItemColorGame = new cc.MenuItemImage(res.imgStartColoredGame, res.imgStartColoredGame, res.imgStartColoredGame, function(){this.onGameTypeTouch(true);}, this);
         this.mItemColorGame.setPosition(new cc.p(this.winsize.width/2 + 1.3 * labelOffset,this.winsize.height/2 + 2*labelOffset));
         this.mItemColorGame.setScale(180.0 / this.mItemColorGame.getContentSize().width);
 
@@ -134,10 +134,12 @@ var GameSelectionLayer = cc.Node.extend({
         //cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(0, 3), cc.color(0,0,0)));
         //cc.director(new cc.TransitionFade(0.5, new TutorialScene(), cc.color(0,0,0)));
 
+        PersistentStorage.SetValue("SAVEDGAME", []);
+
         cc.director.runScene(new cc.TransitionFade(0.5, new GameScene(this._isColoredGame, this._gameSize), cc.color(0,0,0)));
     },
 
     onBack : function() {
         CommonUtils.PopSceneWithTransition();
-    }
+    },
 });
