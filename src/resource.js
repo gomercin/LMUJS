@@ -5,12 +5,16 @@ var res = {
     imgStartPhotoGame : "res/fotosec.png",
     imgSquare : "res/kare.png",
     imgPeek : "res/peek.png",
-    imgPeekHighlight : "res/peek_highlight.png",
     imgTutorial1 : "res/tutorial1.jpg",
     imgTutorial2 : "res/tutorial2.jpg",
     imgTutorial3 : "res/tutorial3.jpg",
     imgUndo : "res/undo.png",
-    imgMenu : "res/menu.png"
+    imgMenu : "res/menu.png",
+    imgRowsGame : "res/rows_game.png",
+    imgColsGame : "res/cols_game.png",
+    imgLine : "res/line.png",
+    imgArrow : "res/arrow.png",
+    imgBtnBg : "res/btn.png"
 };
 
 var g_resources = [];

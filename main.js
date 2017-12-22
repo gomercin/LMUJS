@@ -51,7 +51,9 @@
  *
  */
 
+
 cc.game.onStart = function(){
+    cc.log("onStart 1");
     if(!cc.sys.isNative && document.getElementById("cocosLoading")) //If referenced loading.js, please remove it
         document.body.removeChild(document.getElementById("cocosLoading"));
 
@@ -59,6 +61,12 @@ cc.game.onStart = function(){
     cc.view.enableRetina(cc.sys.os === cc.sys.OS_IOS ? true : false);
     // Adjust viewport meta
     cc.view.adjustViewPort(true);
+
+    cc.log("onStart 2");
+    
+    // Uncomment the following line to set a fixed orientation for your game
+    // cc.view.setOrientation(cc.ORIENTATION_PORTRAIT);
+
     // Setup the resolution policy and design resolution size
     cc.view.setDesignResolutionSize(640, 960, cc.ResolutionPolicy.SHOW_ALL);
     // Instead of set design resolution, you can also set the real pixel resolution size
@@ -66,6 +74,9 @@ cc.game.onStart = function(){
     // cc.view.setRealPixelResolution(960, 640, cc.ResolutionPolicy.SHOW_ALL);
     // The game will be resized when browser size change
     cc.view.resizeWithBrowserSize(true);
+
+    cc.log("onStart 3");
+    
     //load resources
     cc.LoaderScene.preload(g_resources, function () {
         cc.director.runScene(new MenuScene());

@@ -24,43 +24,39 @@ var GameScene = cc.Scene.extend({
 });
 
 
-var GameLayer = cc.Node.extend({
+var GameLayer = cc.LayerColor.extend({
 
     isPeeking : false,
 
     ctor : function(gameType, gameSize){
         //1. call super class's ctor function
         this._super();
-
+        
         this._gameSize = gameSize;
         this._isColoredGame = gameType;
 
         this._selectedSizeColor = new cc.Color(0x99, 0x00, 0xCC);
         this._notSelectedSizeColor = new cc.Color(0xFF, 0xFF, 0xFF);
     },
-    init:function() {
 
+    init:function() {
+        this._super(cc.color(230, 230, 255, 255));
+        
         this.winsize = cc.director.getWinSize();
 
         this.centerpos = cc.p(this.winsize.width / 2, this.winsize.height / 2);
 
-        //4. create a background image and set it's position at the center of the screen
-        var spritebg = new cc.Sprite(res.imgBackground);
-
-
-        spritebg.setPosition(this.centerpos);
-        spritebg.setScale(this.winsize.width / spritebg.getContentSize().width);
-        this.addChild(spritebg);
-
-
         this.CreateMenu();
-
 
         this.gameBoard = new GameBoard(this._isColoredGame, this._gameSize);
         this.gameBoard.initWithBoardSize(this.winsize.width * 0.8);
         this.gameBoard.setPosition(this.winsize.width / 2, this.winsize.height / 2);
         this.gameBoard.surroundingLayer = this;
         this.addChild(this.gameBoard);
+
+        this._totalTime = 0.0;
+
+        this.scheduleUpdate( );        
     },
 
     CreateMenu : function() {
@@ -80,6 +76,11 @@ var GameLayer = cc.Node.extend({
         this.mItemPeek.setPosition(cc.p(3 * this.winsize.width/4,this.winsize.height - this.topMargin));
         this.mItemPeek.setScale(120.0 / this.mItemPeek.getContentSize().width);
         //this.mItemPeek.retain();
+
+        this.lblTimer = new cc.LabelTTF('00:00:00', 'Lucida Fax', 30);
+        this.lblTimer.setPosition(new cc.p(320, this.winsize.height - 780));
+        this.lblTimer.setColor(cc.color(0, 0, 0));
+        this.addChild(this.lblTimer);
 
         var menu = new cc.Menu(this.mItemUndo, this.mItemMenu, this.mItemPeek);
 
@@ -122,6 +123,19 @@ var GameLayer = cc.Node.extend({
         this.mItemPeek.setSelectedImage(new cc.Sprite(this.isPeeking ? res.imgPeekHighlight : res.imgPeek));
 
         this.gameBoard.changePeekState(peekEnabled);
+    },
+
+    update : function(dt) {
+        this._totalTime += dt;
+        var min = Math.floor(this._totalTime / 60);
+        var sec = Math.floor(this._totalTime % 60);
+        var msec = Math.floor((this._totalTime * 100) % 100);
+
+        var minStr = (min < 10 ? "0" : "") + min;
+        var secStr = (sec < 10 ? "0" : "") + sec;
+        var msecStr = (msec < 10 ? "0" : "") + msec;
+        
+        this.lblTimer.setString(minStr + ":" + secStr + ":" + msecStr);
     }
 });
 
@@ -171,7 +185,6 @@ var GameBoard = cc.Node.extend({
         this.colors = [];
         this.moveHistory = [];
         this.isMoving = false;
-
     },
 
     initWithBoardSize: function (boardWidth) {
@@ -380,11 +393,10 @@ var GameBoard = cc.Node.extend({
             cc.p(halfWidth, halfWidth),
             cc.p(-halfWidth, halfWidth)];
 
-        var green = cc.color(255, 255, 255, 255);
-        shape.drawPoly(rectangle, green, 3, green);
+        var bgColor = cc.color(110, 100, 5, 10);
+        shape.drawPoly(rectangle, bgColor, 3, bgColor);
         return shape;
     },
-
 
     createGameBoard: function () {
         this.gameBorderSize = 3;
