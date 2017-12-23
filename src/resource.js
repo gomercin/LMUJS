@@ -14,6 +14,7 @@ var res = {
     imgColsGame : "res/cols_game.png",
     imgLine : "res/line.png",
     imgArrow : "res/arrow.png",
+    imgArrow3D : "res/arrow3d.png",
     imgBtnBg : "res/btn.png"
 };
 
