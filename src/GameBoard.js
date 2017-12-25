@@ -81,6 +81,8 @@ var GameBoard = cc.Node.extend({
         this.createActions();
 
         this.createTouchListener();
+
+        this.shuffle();
     },
 
     createHints : function() {
@@ -345,7 +347,7 @@ var GameBoard = cc.Node.extend({
         cc.log(str);
     },
 
-    redrawBoard: function () {
+    redrawBoard : function () {
         this.updateHiddenNodes();
 
         var isSolved = true;
@@ -401,7 +403,7 @@ var GameBoard = cc.Node.extend({
             increment = -1;
         }
 
-        for (i = loopStart; i != loopEnd; i += increment) {
+        for (var i = loopStart; i != loopEnd; i += increment) {
             this.boardValues[row][i] = this.boardValues[row][i + increment];
         }
 
@@ -425,11 +427,39 @@ var GameBoard = cc.Node.extend({
             increment = -1;
         }
 
-        for (i = loopStart; i != loopEnd; i += increment) {
+        for (var i = loopStart; i != loopEnd; i += increment) {
             this.boardValues[i][col] = this.boardValues[i+increment][col];
         }
 
         this.boardValues[loopEnd][col] = this.boardValues[loopStart + increment][col];
+    },
+
+    shuffle : function() {
+
+        for (var i = 0; i < 1000; i++) 
+        {
+            var rowcol = Math.ceil(Math.random() * this.gameSize);
+            
+            var dir = Math.floor(Math.random() * 2) + 1;
+            
+            if (Math.floor(Math.random() * 2) % 2) {
+                dir *= -1;
+            }
+
+            this.currentDir = dir;
+            this.currentRowColIndex = rowcol;
+
+            if (dir == 2 || dir == -2) {
+                this.moveColumnValues();
+            } else {
+                this.moveRowValues();
+            }
+
+            this.updateHiddenNodes();            
+        }
+
+        this.redrawBoard();
+
     },
 
     moveRow: function (row, direction) {
@@ -505,6 +535,7 @@ var GameBoard = cc.Node.extend({
     },
 
     undo : function() {
+
         if (this.isMoving == true)
         {
             cc.log("undo: rejected");
