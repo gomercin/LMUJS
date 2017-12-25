@@ -5,7 +5,7 @@
 
 var GameScene = cc.Scene.extend({
 
-    _gameType : 0,
+    _gameType : GameTypeEnum.COLOR_ROWS,
     _gameSize : 0,
 
     ctor : function(gameType, gameSize) {
@@ -31,7 +31,7 @@ var GameLayer = cc.LayerColor.extend({
         this._super();
         
         this._gameSize = gameSize;
-        this._isColoredGame = gameType;
+        this._gameType = gameType;
     },
 
     init:function() {
@@ -43,7 +43,7 @@ var GameLayer = cc.LayerColor.extend({
 
         this.CreateMenu();
 
-        this.gameBoard = new GameBoard(this._isColoredGame, this._gameSize);
+        this.gameBoard = new GameBoard(this._gameType, this._gameSize);
         this.gameBoard.initWithBoardSize(this.winsize.width * 0.7);
         this.gameBoard.setPosition(this.winsize.width / 2, this.winsize.height / 2);
         this.gameBoard.surroundingLayer = this;

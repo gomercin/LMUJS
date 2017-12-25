@@ -271,12 +271,24 @@ var GameBoard = cc.Node.extend({
         this.multiplier = this.squareSize + this.gameBorderSize;
         this.offset = (this.squareSize - this.boardWidth) / 2 + this.gameBorderSize;
 
+        var valueMultipler = (this.gameType == GameTypeEnum.COLOR_ROWS) ? 0 : 10;
+
         for (row = 0; row < this.gameSize + 2; row++) {
             this.boardNodes[row] = [];
             this.boardValues[row] = [];
 
             for (col = 0; col < this.gameSize + 2; col++) {
                 var sq = new cc.Sprite(res.imgSquare);
+                if (this.gameType == GameTypeEnum.COLOR_BOTH)
+                {
+                    var label = new cc.LabelTTF((this.gameType == GameTypeEnum.COLOR_ROWS) ? '0' : col, 'Lucida Fax', 90);
+                    //label.setColor(cc.color(0, 0, 0));
+                    label.fillStyle = cc.color(0, 0, 0);
+                    label.setPosition(sq.getContentSize().width / 2, sq.getContentSize().height / 2);
+                    label.enableStroke(cc.color(254, 254, 254, 255), 10);
+                    label.retain();
+                    sq.addChild(label);
+                }
                 sq.retain();
                 var scale = this.squareSize / sq.getContentSize().width;
                 sq.setScale(scale);
@@ -287,7 +299,7 @@ var GameBoard = cc.Node.extend({
                 board.addChild(sq);
 
                 this.boardNodes[row][col] = sq;
-                this.boardValues[row][col] = row;
+                this.boardValues[row][col] = valueMultipler * col + row;
             }
         }
 
@@ -336,16 +348,37 @@ var GameBoard = cc.Node.extend({
     redrawBoard: function () {
         this.updateHiddenNodes();
 
+        var isSolved = true;
+
         for (row = 0; row < this.gameSize + 2; row++) {
 
             for (col = 0; col < this.gameSize + 2; col++) {
+                var val = this.boardValues[row][col];
                 var sq = this.boardNodes[row][col];
-                sq.setColor(this.getColorFromValue(this.boardValues[row][col]));
+                sq.setColor(this.getColorFromValue(val % 10));
                 var x = (col - 1) * this.multiplier + this.offset;
                 var y = (row - 1) * this.multiplier + this.offset;
 
+                if (this.gameType == GameTypeEnum.COLOR_BOTH)
+                {
+                    if (sq.childrenCount > 0) 
+                    {
+                        sq.getChildren()[0].setString(Math.floor(val / 10));
+                    }
+                }
+
                 sq.setPosition(x, y);
+
+                if (row != 0 && col != 0 && row != this.gameSize + 1 && col != this.gameSize + 1) {
+                    if (this.boardValues[row][col] != this.originalBoardValues[row][col]) {
+                        isSolved = false;
+                    }
+                }
             }
+        }
+
+        if (isSolved == true) {
+            cc.log("SOLVED!");
         }
 
         PersistentStorage.SetValue("SAVEDGAME", this.boardValues);

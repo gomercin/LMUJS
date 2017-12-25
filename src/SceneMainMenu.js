@@ -23,7 +23,7 @@ var MenuLayer = cc.LayerColor.extend({
         this.winsize = cc.director.getWinSize();
         
 
-        this._isColsGame = false;
+        this._gameType = GameTypeEnum.COLOR_ROWS;
         this._gameSize = 4;
 
         this.createMenu();
@@ -45,12 +45,12 @@ var MenuLayer = cc.LayerColor.extend({
         this.addChild(lblGameMode);
 
         this.mItemRowsGame = new cc.MenuItemImage(res.imgRowsGame, res.imgRowsGame, res.imgRowsGame, function () {
-            this.onGameTypeTouch(false);
+            this.onGameTypeTouch(GameTypeEnum.COLOR_ROWS);
         }, this);
         this.mItemRowsGame.setPosition(new cc.p(188, this.winsize.height - 324));
 
         this.mItemColsGame = new cc.MenuItemImage(res.imgColsGame, res.imgColsGame, res.imgColsGame, function () {
-            this.onGameTypeTouch(true);
+            this.onGameTypeTouch(GameTypeEnum.COLOR_BOTH);
         }, this);
         this.mItemColsGame.setPosition(new cc.p(456, this.winsize.height - 324));
 
@@ -110,8 +110,8 @@ var MenuLayer = cc.LayerColor.extend({
             this.mItemResume.enabled = true;
         }
 
-        this.mItemRowsGame.setOpacity(this._isColsGame ? 110 : 255);
-        this.mItemColsGame.setOpacity(this._isColsGame ? 255 : 110);
+        this.mItemRowsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_ROWS ? 255 : 110);
+        this.mItemColsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_BOTH ? 255 : 110);
 
         if (this._gameSize < 3) 
             this._gameSize = 3;
@@ -140,13 +140,13 @@ var MenuLayer = cc.LayerColor.extend({
 
     onNewGame: function () {
         cc.log("==newGame clicked");
-        cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(this._isColsGame, this._gameSize), cc.color(0, 0, 0)));
+        cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(this._gameType, this._gameSize), cc.color(0, 0, 0)));
     },
 
-    onGameTypeTouch: function (isColsGame) {
-        cc.log("==game type touched " + isColsGame);
+    onGameTypeTouch: function (gameType) {
+        cc.log("==game type touched " + gameType);
 
-        this._isColsGame = isColsGame;
+        this._gameType = gameType;
         this.updateMenu();
     },
 

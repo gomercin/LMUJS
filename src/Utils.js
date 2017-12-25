@@ -25,3 +25,6 @@ CommonUtils.CloneSprite = function(sprite) {
     newNode.setColor(sprite.getColor());
     return newNode;
 };
+
+var GameTypeEnum = Object.freeze({"COLOR_ROWS":1, "COLOR_BOTH":2, "IMG":3});
+
