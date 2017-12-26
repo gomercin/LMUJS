@@ -53,7 +53,6 @@
 
 
 cc.game.onStart = function(){
-    cc.log("onStart 1");
     if(!cc.sys.isNative && document.getElementById("cocosLoading")) //If referenced loading.js, please remove it
         document.body.removeChild(document.getElementById("cocosLoading"));
 
@@ -61,22 +60,65 @@ cc.game.onStart = function(){
     cc.view.enableRetina(cc.sys.os === cc.sys.OS_IOS ? true : false);
     // Adjust viewport meta
     cc.view.adjustViewPort(true);
-
-    cc.log("onStart 2");
     
     // Uncomment the following line to set a fixed orientation for your game
-    // cc.view.setOrientation(cc.ORIENTATION_PORTRAIT);
+    cc.view.setOrientation(cc.ORIENTATION_PORTRAIT);
 
     // Setup the resolution policy and design resolution size
-    cc.view.setDesignResolutionSize(640, 960, cc.ResolutionPolicy.SHOW_ALL);
+    //cc.view.setDesignResolutionSize(640, 960, cc.ResolutionPolicy.SHOW_ALL);
     // Instead of set design resolution, you can also set the real pixel resolution size
     // Uncomment the following line and delete the previous line.
     // cc.view.setRealPixelResolution(960, 640, cc.ResolutionPolicy.SHOW_ALL);
     // The game will be resized when browser size change
     cc.view.resizeWithBrowserSize(true);
 
-    cc.log("onStart 3");
+    var frameSize = cc.view.getFrameSize();
+    /* 
+    we want to fill the screen with the background
+    but we want to have the items more or less on similar positions, with where they would be with
+        cc.ResolutionPolicy.SHOW_ALL
+    I will compare the real screen size with my design resolution. I will calculate the size and position of the 
+    black borders that would normally appear and store them as design offsets.
+    These offsets will be used by all absolute positions. 
+    */
+    var designSize = cc.size(640, 960);
+    var designRatio = designSize.width / designSize.height;
+    //calculating real screen ratio
+    var realRatio = frameSize.width / frameSize.height;
+
+    var offset_x = 0;
+    var offset_y = 0;
+
+    var final_design_width = designSize.width;
+    var final_design_height = designSize.height;
+
+    if (realRatio > designRatio) {
+        //means larger width, thus black-borders would be at left and right
+        var expectedWidth = (Math.floor)(frameSize.height * designRatio);
+        offset_x = (Math.floor)((frameSize.width - expectedWidth) / 2);
+
+        final_design_width = frameSize.width / (frameSize.height / designSize.height);
+    } else {
+        //means larger height, thus black-borders wuld be at top and bottom
+        var expectedHeight = (Math.floor)(frameSize.width / designRatio);
+        offset_y = (Math.floor)((frameSize.height - expectedHeight) / 2);
+
+        final_design_height = frameSize.height / (frameSize.width / designSize.width);
+    }
+
+    cc.log("final width: " + final_design_width);
+    cc.log("final heihth: " + final_design_height);
+
+    CommonUtils.DesignSize = designSize;
+
+    cc.view.setDesignResolutionSize(final_design_width, final_design_height, cc.ResolutionPolicy.SHOW_ALL);
+
+    cc.log("frame size: " + frameSize.width + ", " + frameSize.height);
     
+    //var gl = cc._renderContext;
+    //gl.clearColor(1.0, 1.0, 1.0, 1.0);
+    //gl.clear(0xFFFFFFFF);
+
     //load resources
     cc.LoaderScene.preload(g_resources, function () {
         cc.director.runScene(new MenuScene());

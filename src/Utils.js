@@ -4,6 +4,10 @@
 
 function CommonUtils() {};
 
+CommonUtils.DesignSize = 0;
+CommonUtils.DesignOffsetX = 0;
+CommonUtils.DesignOffsetY = 0;
+
 CommonUtils.PopSceneWithTransition = function() {
 
     cc.director.popScene();
