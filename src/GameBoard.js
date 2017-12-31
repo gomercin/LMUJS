@@ -334,6 +334,20 @@ var GameBoard = cc.Node.extend({
 
         return this.colors[val];
     },
+  
+  getOpposingColorFromValue : function (val) {
+    var color = this.getColorFromValue(val);
+   
+                      var a = 1 - ( 0.299 * color.r + 0.587 * color.g + 0.114 * color.b)/255;
+
+    if (a < 0.5)
+       d = 0; // bright colors - black font
+    else
+       d = 255; // dark colors - white font
+
+    return cc.color(d, d, d);
+    //return  Color.FromArgb(d, d, d);
+  },
 
     updateHiddenNodes: function () {
         for (i = 0; i < this.gameSize + 2; i++) {
@@ -377,6 +391,7 @@ var GameBoard = cc.Node.extend({
                     if (sq.childrenCount > 0) 
                     {
                         sq.getChildren()[0].setString(Math.floor(val / 10));
+                      sq.getChildren()[0].setColor(this.getOpposingColorFromVal(val %10));
                     }
                 }
 
