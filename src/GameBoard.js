@@ -266,8 +266,17 @@ Black	(0, 0, 0)
         this.colors[4] = cc.color(245, 130, 48);	
         this.colors[5] = cc.color(145, 30, 180);
         this.colors[6] = cc.color(70, 240, 240);	
-        this.colors[7] = cc.color(240, 50, 230);	
-        this.colors[8] = cc.color(210, 245, 60);
+        this.colors[7] = cc.color(255, 215, 180);	
+        this.colors[8] = cc.color(0, 0, 128);
+
+        /*shuffle the colors*/
+        var j, x;
+        for (var i = this.colors.length - 1; i > 0; i--) {
+            j = Math.floor(Math.random() * (i + 1));
+            x = this.colors[i];
+            this.colors[i] = this.colors[j];
+            this.colors[j] = x;
+        }
 
         for (var i = 0; i < this.colors.length; i++) {
             var color = this.colors[i];
