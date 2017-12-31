@@ -80,6 +80,10 @@ cc.game.onStart = function(){
     I will compare the real screen size with my design resolution. I will calculate the size and position of the 
     black borders that would normally appear and store them as design offsets.
     These offsets will be used by all absolute positions. 
+
+    inspired by: 
+    http://discuss.cocos2d-x.org/t/multiresolution-how-to-show-all-without-black-borders/26508/11
+    
     */
     var designSize = cc.size(640, 960);
     var designRatio = designSize.width / designSize.height;

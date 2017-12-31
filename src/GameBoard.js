@@ -235,8 +235,8 @@ var GameBoard = cc.Node.extend({
 
     initColors: function () {
         /*
-        some color codes to experiment:
-        Red		(230, 25, 75)	
+        some color codes to experiment (from https://sashat.me/2017/01/11/list-of-20-simple-distinct-colors/)
+Red		(230, 25, 75)	
 Green	(60, 180, 75)	
 Yellow	(255, 225, 25)	
 Blue	(0, 130, 200)	
