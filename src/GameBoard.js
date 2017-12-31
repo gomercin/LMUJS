@@ -391,7 +391,7 @@ var GameBoard = cc.Node.extend({
                     if (sq.childrenCount > 0) 
                     {
                         sq.getChildren()[0].setString(Math.floor(val / 10));
-                      sq.getChildren()[0].setColor(this.getOpposingColorFromVal(val %10));
+                      sq.getChildren()[0].setColor(this.getOpposingColorFromValue(val %10));
                     }
                 }
 
