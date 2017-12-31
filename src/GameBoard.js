@@ -420,8 +420,15 @@ Black	(0, 0, 0)
             }
         }
 
-        if (isSolved == true) {
+        if (this.moveHistory.length > 0 && isSolved == true) {
             cc.log("SOLVED!");
+
+            var label = new cc.LabelTTF('SOLVED!', 'Lucida Fax', 90);
+            label.setPosition(0, 0);
+
+            label.setColor(cc.color(0, 0, 0));
+            label.retain();
+            this.addChild(label);
         }
 
         PersistentStorage.SetValue("SAVEDGAME", this.boardValues);
