@@ -285,9 +285,20 @@ var GameBoard = cc.Node.extend({
                 {
                     var label = new cc.LabelTTF((this.gameType == GameTypeEnum.COLOR_ROWS) ? '0' : col, 'Lucida Fax', 90);
                     //label.setColor(cc.color(0, 0, 0));
-                    label.fillStyle = cc.color(0, 0, 0);
+                  
+                    //label.fillStyle = cc.color(0, 0, 0);
                     label.setPosition(sq.getContentSize().width / 2, sq.getContentSize().height / 2);
-                    label.enableStroke(cc.color(254, 254, 254, 255), 10);
+                    //label.enableStroke(cc.color(254, 254, 254, 255), 10);
+                  var color = this.getColorFromValue(row);
+                      var a = 1 - ( 0.299 * color.r + 0.587 * color.g + 0.114 * color.b)/255;
+
+    if (a < 0.5)
+       d = 0; // bright colors - black font
+    else
+       d = 255; // dark colors - white font
+
+                  label.setColor(cc.color(d, d, d));
+    //return  Color.FromArgb(d, d, d);
                     label.retain();
                     sq.addChild(label);
                 }
