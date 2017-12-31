@@ -5,30 +5,30 @@ function GameMove(rowColVal, direction) {
 
 var GameBoard = cc.Node.extend({
 
-    DirectionEnum : {
-        LEFT : 1,
-        RIGHT : -1,
-        UP : 2,
-        DOWN : -2
+    DirectionEnum: {
+        LEFT: 1,
+        RIGHT: -1,
+        UP: 2,
+        DOWN: -2
     },
 
     boardNodes: [],
     boardValues: [],
-    originalBoardValues : [],
+    originalBoardValues: [],
     colors: [],
 
-    moveHistory : [],
+    moveHistory: [],
 
-    currentRowColIndex : 0,
-    currentDir : 1,
-    hasMovedLastNode : false,
+    currentRowColIndex: 0,
+    currentDir: 1,
+    hasMovedLastNode: false,
 
     isMoving: false,
 
-    touchStartedAt : new cc.p(-1000, -1000),
-    touchEndedAt : new cc.p(-1000, -1000),
+    touchStartedAt: new cc.p(-1000, -1000),
+    touchEndedAt: new cc.p(-1000, -1000),
 
-    surroundingLayer : 0,
+    surroundingLayer: 0,
 
     ctor: function (gameType, gameSize) {
         this._super();
@@ -40,6 +40,7 @@ var GameBoard = cc.Node.extend({
         this.boardValues = [];
         this.originalBoardValues = [];
         this.colors = [];
+        this.foregroundColors = [];
         this.moveHistory = [];
         this.isMoving = false;
     },
@@ -61,8 +62,8 @@ var GameBoard = cc.Node.extend({
         clipper.tag = 1;
         clipper.anchorX = 0.5;
         clipper.anchorY = 0.5;
-        clipper.x = 0;// winSize.width / 2 - 50;
-        clipper.y = 0;//winSize.height / 2 - 50;
+        clipper.x = 0; // winSize.width / 2 - 50;
+        clipper.y = 0; //winSize.height / 2 - 50;
         clipper.stencil = stencil;
         clipper.setInverted(false);
         this.addChild(clipper);
@@ -85,29 +86,28 @@ var GameBoard = cc.Node.extend({
         this.shuffle();
     },
 
-    createHints : function() {
+    createHints: function () {
         var refNode = this.boardNodes[0][0];
 
-        var rowHints_x = -255;//refNode.getPosition().x;
+        var rowHints_x = -255; //refNode.getPosition().x;
 
         for (row = 1; row <= this.gameSize; row++) {
             var sq = new cc.Sprite(res.imgArrow3D);
             sq.setScale(0.5);
-            sq.setColor(this.getColorFromValue(row));            
+            sq.setColor(this.getColorFromValue(row));
             var y = (row - 1) * this.multiplier + this.offset;
             sq.setPosition(rowHints_x, y);
             this.addChild(sq);
         }
-    }, 
+    },
 
-    createTouchListener : function() {
+    createTouchListener: function () {
         cc.eventManager.addListener({
             event: cc.EventListener.TOUCH_ONE_BY_ONE,
             onTouchBegan: function (touch, event) {
                 var target = event.getCurrentTarget();
 
-                if (target instanceof GameBoard)
-                {
+                if (target instanceof GameBoard) {
                     var touchLoc = touch.getLocation();
                     var locationInNode = target.convertToNodeSpace(touchLoc);
 
@@ -119,7 +119,7 @@ var GameBoard = cc.Node.extend({
             onTouchEnded: function (touch, event) {
                 var target = event.getCurrentTarget();
 
-                if ( target instanceof  GameBoard) {
+                if (target instanceof GameBoard) {
                     var touchLoc = touch.getLocation();
                     var locationInNode = target.convertToNodeSpace(touchLoc);
                     target.touchEndedAt = locationInNode;
@@ -134,7 +134,7 @@ var GameBoard = cc.Node.extend({
         }, this);
     },
 
-    processTouch : function() {
+    processTouch: function () {
         //do we need to check if touches began and end withing board boundaries?
         //it might be enough to check if it began withing the board to understand which row or column will be moved
         //end position is only used for swipe direction reference,
@@ -163,22 +163,19 @@ var GameBoard = cc.Node.extend({
                 isHorizontalSwipe = false;
                 willMove = true;
 
-                if (absYDiff < swipeThreshold)
-                {
+                if (absYDiff < swipeThreshold) {
                     willMove = false;
                 }
             }
 
-            if (willMove == true)
-            {
+            if (willMove == true) {
                 var rowColVal = 0;
                 var direction = this.DirectionEnum.LEFT;
 
                 if (isHorizontalSwipe == true) {
                     rowColVal = Math.floor((this.touchStartedAt.y + halfSize) / this.multiplier) + 1;
                     direction = (xDiff > 0) ? this.DirectionEnum.RIGHT : this.DirectionEnum.LEFT;
-                }
-                else {
+                } else {
                     rowColVal = Math.floor((this.touchStartedAt.x + halfSize) / this.multiplier) + 1;
                     direction = (yDiff > 0) ? this.DirectionEnum.UP : this.DirectionEnum.DOWN;
                 }
@@ -188,7 +185,7 @@ var GameBoard = cc.Node.extend({
         }
     },
 
-    createActions : function() {
+    createActions: function () {
         var actionDuration = 0.3;
 
         this.upDownFunc = function () {
@@ -198,8 +195,7 @@ var GameBoard = cc.Node.extend({
 
             if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
                 this.surroundingLayer.mItemUndo.opacity = 255;
-            }
-            else {
+            } else {
                 this.surroundingLayer.mItemUndo.opacity = 100;
             }
         };
@@ -211,8 +207,7 @@ var GameBoard = cc.Node.extend({
 
             if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
                 this.surroundingLayer.mItemUndo.opacity = 255;
-            }
-            else {
+            } else {
                 this.surroundingLayer.mItemUndo.opacity = 100;
             }
         };
@@ -239,15 +234,53 @@ var GameBoard = cc.Node.extend({
     },
 
     initColors: function () {
-        this.colors[0] = new cc.Color(255, 0, 0, 255);
-        this.colors[1] = new cc.Color(0, 255, 0, 255);
-        this.colors[2] = new cc.Color(0, 0, 255, 255);
-        this.colors[3] = new cc.Color(255, 255, 0, 255);
-        this.colors[4] = new cc.Color(255, 0, 255, 255);
-        this.colors[5] = new cc.Color(0, 255, 255, 255);
-        this.colors[6] = new cc.Color(128, 241, 87, 255);
-        this.colors[7] = new cc.Color(210, 87, 165, 255);
-        this.colors[8] = new cc.Color(50, 212, 98, 255);
+        /*
+        some color codes to experiment:
+        Red		(230, 25, 75)	
+Green	(60, 180, 75)	
+Yellow	(255, 225, 25)	
+Blue	(0, 130, 200)	
+Orange	(245, 130, 48)	
+Purple	(145, 30, 180)	
+Cyan	(70, 240, 240)	
+Magenta	(240, 50, 230)	
+Lime	(210, 245, 60)	
+Pink	(250, 190, 190)	
+Teal	(0, 128, 128)	
+Lavend	(230, 190, 255)	
+Brown	(170, 110, 40)	
+Beige	(255, 250, 200)	
+Maroon	(128, 0, 0)		
+Mint	(170, 255, 195)	
+Olive	(128, 128, 0)	
+Coral	(255, 215, 180)	
+Navy	(0, 0, 128)		
+Grey	(128, 128, 128)	
+White	(255, 255, 255)	
+Black	(0, 0, 0)	
+        */ 
+        this.colors[0] = cc.color(230, 25, 75);	
+        this.colors[1] = cc.color(60, 180, 75);	
+        this.colors[2] = cc.color(255, 225, 25);	
+        this.colors[3] = cc.color(0, 130, 200);	
+        this.colors[4] = cc.color(245, 130, 48);	
+        this.colors[5] = cc.color(145, 30, 180);
+        this.colors[6] = cc.color(70, 240, 240);	
+        this.colors[7] = cc.color(240, 50, 230);	
+        this.colors[8] = cc.color(210, 245, 60);
+
+        for (var i = 0; i < this.colors.length; i++) {
+            var color = this.colors[i];
+
+            var a = 1 - (0.299 * color.r + 0.587 * color.g + 0.114 * color.b) / 255;
+
+            if (a < 0.5)
+                d = 0; // bright colors - black font
+            else
+                d = 255; // dark colors - white font
+
+            this.foregroundColors[i] = cc.color(d, d, d);
+        }
     },
 
     gameMask: function () {
@@ -257,7 +290,8 @@ var GameBoard = cc.Node.extend({
         var rectangle = [cc.p(-halfWidth, -halfWidth),
             cc.p(halfWidth, -halfWidth),
             cc.p(halfWidth, halfWidth),
-            cc.p(-halfWidth, halfWidth)];
+            cc.p(-halfWidth, halfWidth)
+        ];
 
         var bgColor = cc.color(110, 100, 5, 10);
         shape.drawPoly(rectangle, bgColor, 3, bgColor);
@@ -281,24 +315,11 @@ var GameBoard = cc.Node.extend({
 
             for (col = 0; col < this.gameSize + 2; col++) {
                 var sq = new cc.Sprite(res.imgSquare);
-                if (this.gameType == GameTypeEnum.COLOR_BOTH)
-                {
+                if (this.gameType == GameTypeEnum.COLOR_BOTH) {
                     var label = new cc.LabelTTF((this.gameType == GameTypeEnum.COLOR_ROWS) ? '0' : col, 'Lucida Fax', 90);
-                    //label.setColor(cc.color(0, 0, 0));
-                  
-                    //label.fillStyle = cc.color(0, 0, 0);
                     label.setPosition(sq.getContentSize().width / 2, sq.getContentSize().height / 2);
-                    //label.enableStroke(cc.color(254, 254, 254, 255), 10);
-                  var color = this.getColorFromValue(row);
-                      var a = 1 - ( 0.299 * color.r + 0.587 * color.g + 0.114 * color.b)/255;
 
-    if (a < 0.5)
-       d = 0; // bright colors - black font
-    else
-       d = 255; // dark colors - white font
-
-                  label.setColor(cc.color(d, d, d));
-    //return  Color.FromArgb(d, d, d);
+                    label.setColor(cc.color(0, 0, 0));
                     label.retain();
                     sq.addChild(label);
                 }
@@ -317,12 +338,10 @@ var GameBoard = cc.Node.extend({
         }
 
         this.updateHiddenNodes();
-        for (row = 0; row < this.gameSize + 2; row++)
-        {
+        for (row = 0; row < this.gameSize + 2; row++) {
             this.originalBoardValues[row] = [];
 
-            for(col=0; col< this.gameSize + 2; col++)
-            {
+            for (col = 0; col < this.gameSize + 2; col++) {
                 this.originalBoardValues[row][col] = this.boardValues[row][col];
             }
         }
@@ -331,23 +350,12 @@ var GameBoard = cc.Node.extend({
     },
 
     getColorFromValue: function (val) {
-
         return this.colors[val];
     },
-  
-  getOpposingColorFromValue : function (val) {
-    var color = this.getColorFromValue(val);
-   
-                      var a = 1 - ( 0.299 * color.r + 0.587 * color.g + 0.114 * color.b)/255;
 
-    if (a < 0.5)
-       d = 0; // bright colors - black font
-    else
-       d = 255; // dark colors - white font
-
-    return cc.color(d, d, d);
-    //return  Color.FromArgb(d, d, d);
-  },
+    getOpposingColorFromValue: function (val) {
+        return this.foregroundColors[val];
+    },
 
     updateHiddenNodes: function () {
         for (i = 0; i < this.gameSize + 2; i++) {
@@ -359,7 +367,7 @@ var GameBoard = cc.Node.extend({
         }
     },
 
-    printBoardValues : function() {
+    printBoardValues: function () {
         var str = "";
 
         for (row = 0; row < this.gameSize + 2; row++) {
@@ -372,7 +380,7 @@ var GameBoard = cc.Node.extend({
         cc.log(str);
     },
 
-    redrawBoard : function () {
+    redrawBoard: function () {
         this.updateHiddenNodes();
 
         var isSolved = true;
@@ -386,12 +394,10 @@ var GameBoard = cc.Node.extend({
                 var x = (col - 1) * this.multiplier + this.offset;
                 var y = (row - 1) * this.multiplier + this.offset;
 
-                if (this.gameType == GameTypeEnum.COLOR_BOTH)
-                {
-                    if (sq.childrenCount > 0) 
-                    {
+                if (this.gameType == GameTypeEnum.COLOR_BOTH) {
+                    if (sq.childrenCount > 0) {
                         sq.getChildren()[0].setString(Math.floor(val / 10));
-                      sq.getChildren()[0].setColor(this.getOpposingColorFromValue(val %10));
+                        sq.getChildren()[0].setColor(this.getOpposingColorFromValue(val % 10));
                     }
                 }
 
@@ -412,19 +418,20 @@ var GameBoard = cc.Node.extend({
         PersistentStorage.SetValue("SAVEDGAME", this.boardValues);
     },
 
-    moveRowValues : function() {
-        var loopStart = 0, loopEnd = 0, increment = 0;
+    moveRowValues: function () {
+        var loopStart = 0,
+            loopEnd = 0,
+            increment = 0;
 
         var row = this.currentRowColIndex;
         var dir = this.currentDir;
 
         if (dir == this.DirectionEnum.LEFT) {
             loopStart = 0;
-            loopEnd = this.gameSize+1;
+            loopEnd = this.gameSize + 1;
             increment = 1;
-        }
-        else {
-            loopStart = this.gameSize+1;
+        } else {
+            loopStart = this.gameSize + 1;
             loopEnd = 0;
             increment = -1;
         }
@@ -436,38 +443,38 @@ var GameBoard = cc.Node.extend({
         this.boardValues[row][loopEnd] = this.boardValues[row][loopStart + increment];
     },
 
-    moveColumnValues : function() {
-        var loopStart = 0, loopEnd = 0, increment = 0;
+    moveColumnValues: function () {
+        var loopStart = 0,
+            loopEnd = 0,
+            increment = 0;
 
         var col = this.currentRowColIndex;
         var dir = this.currentDir;
 
         if (dir == this.DirectionEnum.DOWN) {
             loopStart = 0;
-            loopEnd = this.gameSize+1;
+            loopEnd = this.gameSize + 1;
             increment = 1;
-        }
-        else {
-            loopStart = this.gameSize+1;
+        } else {
+            loopStart = this.gameSize + 1;
             loopEnd = 0;
             increment = -1;
         }
 
         for (var i = loopStart; i != loopEnd; i += increment) {
-            this.boardValues[i][col] = this.boardValues[i+increment][col];
+            this.boardValues[i][col] = this.boardValues[i + increment][col];
         }
 
         this.boardValues[loopEnd][col] = this.boardValues[loopStart + increment][col];
     },
 
-    shuffle : function() {
+    shuffle: function () {
 
-        for (var i = 0; i < 1000; i++) 
-        {
+        for (var i = 0; i < 1000; i++) {
             var rowcol = Math.ceil(Math.random() * this.gameSize);
-            
+
             var dir = Math.floor(Math.random() * 2) + 1;
-            
+
             if (Math.floor(Math.random() * 2) % 2) {
                 dir *= -1;
             }
@@ -481,7 +488,7 @@ var GameBoard = cc.Node.extend({
                 this.moveRowValues();
             }
 
-            this.updateHiddenNodes();            
+            this.updateHiddenNodes();
         }
 
         this.redrawBoard();
@@ -507,8 +514,7 @@ var GameBoard = cc.Node.extend({
 
             if (i == this.gameSize + 1) {
                 sq.runAction(actionForLast.clone());
-            }
-            else {
+            } else {
                 sq.runAction(action.clone());
             }
         }
@@ -531,39 +537,35 @@ var GameBoard = cc.Node.extend({
 
             if (i == this.gameSize + 1) {
                 sq.runAction(lastAction.clone());
-            }
-            else {
+            } else {
                 sq.runAction(action.clone());
             }
         }
     },
 
-    makeMove : function(move, saveToHistory) {
+    makeMove: function (move, saveToHistory) {
         if (this.isMoving == true) return;
         this.isMoving = true;
 
         if (move.direction == this.DirectionEnum.LEFT ||
             move.direction == this.DirectionEnum.RIGHT) {
             this.moveRow(move.rowColVal, move.direction);
-        }
-        else {
+        } else {
             this.moveColumn(move.rowColVal, move.direction);
         }
 
         if (typeof saveToHistory === "undefined" || saveToHistory == true) {
             this.moveHistory.push(move);
 
-            if (this.surroundingLayer != 0)
-            {
+            if (this.surroundingLayer != 0) {
                 this.surroundingLayer.mItemUndo.opacity = 255;
             }
         }
     },
 
-    undo : function() {
+    undo: function () {
 
-        if (this.isMoving == true)
-        {
+        if (this.isMoving == true) {
             cc.log("undo: rejected");
             return true;
         }
