@@ -5,8 +5,12 @@
 function CommonUtils() {};
 
 CommonUtils.DesignSize = 0;
-CommonUtils.DesignOffsetX = 0;
-CommonUtils.DesignOffsetY = 0;
+CommonUtils.DesignOffset = cc.p(0, 0);
+
+CommonUtils.DesignPoint = function(pt) {
+    //return cc.pAdd(CommonUtils.DesignOffset, pt);
+    return cc.p(CommonUtils.DesignOffset.x + pt.x, pt.y + CommonUtils.DesignOffset.y);
+};
 
 CommonUtils.PopSceneWithTransition = function() {
 

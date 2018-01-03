@@ -83,7 +83,7 @@ cc.game.onStart = function(){
 
     inspired by: 
     http://discuss.cocos2d-x.org/t/multiresolution-how-to-show-all-without-black-borders/26508/11
-    
+
     */
     var designSize = cc.size(640, 960);
     var designRatio = designSize.width / designSize.height;
@@ -99,25 +99,27 @@ cc.game.onStart = function(){
     if (realRatio > designRatio) {
         //means larger width, thus black-borders would be at left and right
         var expectedWidth = (Math.floor)(frameSize.height * designRatio);
-        offset_x = (Math.floor)((frameSize.width - expectedWidth) / 2);
 
         final_design_width = frameSize.width / (frameSize.height / designSize.height);
+        offset_x = (Math.floor)((final_design_width - designSize.width) / 2);
     } else {
-        //means larger height, thus black-borders wuld be at top and bottom
+        //means larger height, thus black-borders would be at top and bottom
         var expectedHeight = (Math.floor)(frameSize.width / designRatio);
-        offset_y = (Math.floor)((frameSize.height - expectedHeight) / 2);
 
         final_design_height = frameSize.height / (frameSize.width / designSize.width);
+        offset_y = (Math.floor)((final_design_height - designSize.height) / 2);
     }
 
-    cc.log("final width: " + final_design_width);
-    cc.log("final heihth: " + final_design_height);
+    cc.log("original frame size     : " + frameSize.width + ", " + frameSize.height);
+    cc.log("calculated width, height: " + final_design_width + ", " + final_design_height);
+    cc.log("offset x, y             : " + offset_x + ", " + offset_y);
 
     CommonUtils.DesignSize = designSize;
+    CommonUtils.DesignOffset = cc.p(offset_x, offset_y);
 
     cc.view.setDesignResolutionSize(final_design_width, final_design_height, cc.ResolutionPolicy.SHOW_ALL);
 
-    cc.log("frame size: " + frameSize.width + ", " + frameSize.height);
+
     
     //var gl = cc._renderContext;
     //gl.clearColor(1.0, 1.0, 1.0, 1.0);

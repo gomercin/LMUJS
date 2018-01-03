@@ -45,7 +45,7 @@ var GameLayer = cc.LayerColor.extend({
 
         this.gameBoard = new GameBoard(this._gameType, this._gameSize);
         this.gameBoard.initWithBoardSize(this.winsize.width * 0.7);
-        this.gameBoard.setPosition(this.winsize.width / 2, this.winsize.height / 2);
+        this.gameBoard.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width / 2, this.winsize.height / 2)));
         this.gameBoard.surroundingLayer = this;
         this.addChild(this.gameBoard);
 
@@ -57,16 +57,16 @@ var GameLayer = cc.LayerColor.extend({
     CreateMenu : function() {
         this.topMargin = 75;
         this.mItemUndo = new cc.MenuItemImage(res.imgUndo, res.imgUndo, res.imgUndo, function(){this.onUndoTouch();}, this);
-        this.mItemUndo.setPosition(cc.p(this.winsize.width/4,this.winsize.height - this.topMargin));
+        this.mItemUndo.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width/4,this.winsize.height - this.topMargin)));
         this.mItemUndo.setScale(120.0 / this.mItemUndo.getContentSize().width);
         this.mItemUndo.opacity = 100;
 
         this.mItemMenu = new cc.MenuItemImage(res.imgMenu, res.imgMenu, res.imgMenu, function(){this.onMenuTouch();}, this);
-        this.mItemMenu.setPosition(cc.p(this.winsize.width/2,this.winsize.height - this.topMargin));
+        this.mItemMenu.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width/2,this.winsize.height - this.topMargin)));
         this.mItemMenu.setScale(120.0 / this.mItemMenu.getContentSize().width);
 
         this.lblTimer = new cc.LabelTTF('00:00:00', 'Lucida Fax', 30);
-        this.lblTimer.setPosition(new cc.p(320, this.winsize.height - 780));
+        this.lblTimer.setPosition(CommonUtils.DesignPoint(cc.p(320, this.winsize.height - 780)));
         this.lblTimer.setColor(cc.color(0, 0, 0));
         this.addChild(this.lblTimer);
 
@@ -74,11 +74,11 @@ var GameLayer = cc.LayerColor.extend({
 
         this.addChild(menu);
 
-        menu.setPosition(new cc.p(0 ,0));
+        menu.setPosition(cc.p(0 ,0));
     },
 
     onUndoTouch : function() {
-        cc.log("in game menu cl icked");
+        cc.log("in game menu clicked");
 
         this.gameBoard.undo()
         /*
