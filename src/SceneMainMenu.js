@@ -26,6 +26,17 @@ var MenuLayer = cc.LayerColor.extend({
         this._gameType = GameTypeEnum.COLOR_ROWS;
         this._gameSize = 4;
 
+        var last_game_size = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_SIZE);
+        var last_game_type = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_TYPE);
+
+        if (last_game_size != null && last_game_size != "") {
+            this._gameSize = last_game_size;
+        }
+
+        if (last_game_type != null && last_game_type != "") {
+            this._gameType = last_game_type;
+        }
+
         this.createMenu();
         this.updateMenu();
     },
@@ -104,7 +115,8 @@ var MenuLayer = cc.LayerColor.extend({
     },
 
     updateMenu: function () {
-        if (PersistentStorage.GetValue("LASTGAME") === null) {
+        var lastGame = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
+        if (lastGame === null || lastGame === "") {
             this.mItemResume.enabled = false;
         } else {
             this.mItemResume.enabled = true;
@@ -140,7 +152,7 @@ var MenuLayer = cc.LayerColor.extend({
 
     onNewGame: function () {
         cc.log("==newGame clicked");
-        cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(this._gameType, this._gameSize), cc.color(0, 0, 0)));
+        cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(this._gameType, this._gameSize, false), cc.color(0, 0, 0)));
     },
 
     onGameTypeTouch: function (gameType) {
@@ -158,7 +170,17 @@ var MenuLayer = cc.LayerColor.extend({
     },
 
     onResume: function () {
-        cc.log("==onResume clicked");
+        var lastGame = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
+        if (lastGame === null || lastGame === "") {
+            cc.log("== won't resume");
+        } else {
+            cc.log("== will resume");
+
+            var savedGame = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
+            cc.log("resume with: " + savedGame);
+
+            cc.director.pushScene(new cc.TransitionFade(0.5, new GameScene(this._gameType, this._gameSize, true), cc.color(0, 0, 0)));            
+        }  
     },
 
     onRate: function () {
@@ -191,7 +213,7 @@ var MenuLayer = cc.LayerColor.extend({
     onEnter: function () {
         this._super();
 
-        var savedGame = PersistentStorage.GetValue("SAVEDGAME");
+        var savedGame = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
 
         this.mItemResume.opacity = 80;
 

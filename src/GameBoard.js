@@ -30,8 +30,25 @@ var GameBoard = cc.Node.extend({
 
     surroundingLayer: 0,
 
-    ctor: function (gameType, gameSize) {
+    ctor: function (gameType, gameSize, resume) {
         this._super();
+
+        if (resume == true) {
+            var saved_game_size = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_SIZE);
+            var saved_game_type = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_TYPE);
+            var saved_undos = PersistentStorage.GetValue(GameSettingsKeys.UNDO_LIST);
+            var saved_game_board = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
+
+            //TODO: check if saved state is valid
+
+            gameSize = saved_game_size;
+            gameType = saved_game_type;
+            
+            this.moveHistory = saved_undos;
+        }
+
+        PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_SIZE, gameSize);
+        PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_TYPE, gameType);
 
         this.gameSize = gameSize;
         this.gameType = gameType;
@@ -429,9 +446,13 @@ Black	(0, 0, 0)
             label.setColor(cc.color(0, 0, 0));
             label.retain();
             this.addChild(label);
-        }
 
-        PersistentStorage.SetValue("SAVEDGAME", this.boardValues);
+            PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, "");
+            PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, "");
+        } else {
+            PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, this.boardValues);
+            PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, this.moveHistory);
+        }
     },
 
     moveRowValues: function () {

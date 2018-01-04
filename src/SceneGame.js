@@ -7,17 +7,19 @@ var GameScene = cc.Scene.extend({
 
     _gameType : GameTypeEnum.COLOR_ROWS,
     _gameSize : 0,
+    _resume : false,
 
-    ctor : function(gameType, gameSize) {
+    ctor : function(gameType, gameSize, resume) {
         this._super();
 
         this._gameType = gameType;
         this._gameSize = gameSize;
+        this._resume = resume;
     },
 
     onEnter:function () {
         this._super();
-        var layer = new GameLayer(this._gameType, this._gameSize);
+        var layer = new GameLayer(this._gameType, this._gameSize, this._resume);
         layer.init();
         this.addChild(layer);
     }
@@ -26,12 +28,13 @@ var GameScene = cc.Scene.extend({
 
 var GameLayer = cc.LayerColor.extend({
 
-    ctor : function(gameType, gameSize){
+    ctor : function(gameType, gameSize, resume){
         //1. call super class's ctor function
         this._super();
         
         this._gameSize = gameSize;
         this._gameType = gameType;
+        this._resume = resume;
     },
 
     init:function() {
@@ -43,7 +46,7 @@ var GameLayer = cc.LayerColor.extend({
 
         this.CreateMenu();
 
-        this.gameBoard = new GameBoard(this._gameType, this._gameSize);
+        this.gameBoard = new GameBoard(this._gameType, this._gameSize, this._resume);
         this.gameBoard.initWithBoardSize(this.winsize.width * 0.7);
         this.gameBoard.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width / 2, this.winsize.height / 2)));
         this.gameBoard.surroundingLayer = this;
@@ -62,7 +65,7 @@ var GameLayer = cc.LayerColor.extend({
         this.mItemUndo.opacity = 100;
 
         this.mItemMenu = new cc.MenuItemImage(res.imgMenu, res.imgMenu, res.imgMenu, function(){this.onMenuTouch();}, this);
-        this.mItemMenu.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width/2,this.winsize.height - this.topMargin)));
+        this.mItemMenu.setPosition(CommonUtils.DesignPoint(cc.p(3*this.winsize.width/4,this.winsize.height - this.topMargin)));
         this.mItemMenu.setScale(120.0 / this.mItemMenu.getContentSize().width);
 
         this.lblTimer = new cc.LabelTTF('00:00:00', 'Lucida Fax', 30);
@@ -78,19 +81,8 @@ var GameLayer = cc.LayerColor.extend({
     },
 
     onUndoTouch : function() {
-        cc.log("in game menu clicked");
-
         this.gameBoard.undo()
-        /*
-        if (this.gameBoard.undo() == true)
-        {
-            this.mItemUndo.opacity = 255;
-        }
-        else
-        {
-            this.mItemUndo.opacity = 100;
-        }
-        */
+
         return;
     },
 
