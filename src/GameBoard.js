@@ -30,6 +30,8 @@ var GameBoard = cc.Node.extend({
 
     surroundingLayer: 0,
 
+    isResuming: false,
+
     ctor: function (gameType, gameSize, resume) {
         this._super();
 
@@ -37,7 +39,7 @@ var GameBoard = cc.Node.extend({
             var saved_game_size = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_SIZE);
             var saved_game_type = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_TYPE);
             var saved_undos = PersistentStorage.GetValue(GameSettingsKeys.UNDO_LIST);
-            var saved_game_board = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
+            this.saved_game_board = PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME);
 
             //TODO: check if saved state is valid
 
@@ -45,6 +47,10 @@ var GameBoard = cc.Node.extend({
             gameType = saved_game_type;
             
             this.moveHistory = saved_undos;
+
+            this.isResuming = true;
+        } else {
+            this.moveHistory = [];            
         }
 
         PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_SIZE, gameSize);
@@ -58,7 +64,6 @@ var GameBoard = cc.Node.extend({
         this.originalBoardValues = [];
         this.colors = [];
         this.foregroundColors = [];
-        this.moveHistory = [];
         this.isMoving = false;
     },
 
@@ -100,7 +105,8 @@ var GameBoard = cc.Node.extend({
 
         this.createTouchListener();
 
-        this.shuffle();
+        if (this.isResuming == false)
+            this.shuffle();
     },
 
     createHints: function () {
@@ -202,6 +208,14 @@ var GameBoard = cc.Node.extend({
         }
     },
 
+    updateUndoStatus : function() {
+        if (this.surroundingLayer != null && this.moveHistory.length > 0) {
+            this.surroundingLayer.mItemUndo.opacity = 255;
+        } else {
+            this.surroundingLayer.mItemUndo.opacity = 100;
+        }
+    }, 
+
     createActions: function () {
         var actionDuration = 0.3;
 
@@ -210,11 +224,7 @@ var GameBoard = cc.Node.extend({
             this.redrawBoard();
             this.isMoving = false;
 
-            if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
-                this.surroundingLayer.mItemUndo.opacity = 255;
-            } else {
-                this.surroundingLayer.mItemUndo.opacity = 100;
-            }
+            this.updateUndoStatus();
         };
 
         this.leftRightFunc = function () {
@@ -222,11 +232,7 @@ var GameBoard = cc.Node.extend({
             this.redrawBoard();
             this.isMoving = false;
 
-            if (this.surroundingLayer != 0 && this.moveHistory.length > 0) {
-                this.surroundingLayer.mItemUndo.opacity = 255;
-            } else {
-                this.surroundingLayer.mItemUndo.opacity = 100;
-            }
+            this.updateUndoStatus();
         };
 
         this.moveLeftAction = new cc.MoveBy(actionDuration, -this.multiplier, 0);
@@ -287,6 +293,7 @@ Black	(0, 0, 0)
         this.colors[8] = cc.color(0, 0, 128);
 
         /*shuffle the colors*/
+        /*
         var j, x;
         for (var i = this.colors.length - 1; i > 0; i--) {
             j = Math.floor(Math.random() * (i + 1));
@@ -294,6 +301,7 @@ Black	(0, 0, 0)
             this.colors[i] = this.colors[j];
             this.colors[j] = x;
         }
+        */
 
         for (var i = 0; i < this.colors.length; i++) {
             var color = this.colors[i];
@@ -359,7 +367,7 @@ Black	(0, 0, 0)
                 board.addChild(sq);
 
                 this.boardNodes[row][col] = sq;
-                this.boardValues[row][col] = valueMultipler * col + row;
+                this.boardValues[row][col] = this.isResuming ? (this.saved_game_board[row][col]) : (valueMultipler * col + row);
             }
         }
 
@@ -368,7 +376,7 @@ Black	(0, 0, 0)
             this.originalBoardValues[row] = [];
 
             for (col = 0; col < this.gameSize + 2; col++) {
-                this.originalBoardValues[row][col] = this.boardValues[row][col];
+                this.originalBoardValues[row][col] = (valueMultipler * col + row);
             }
         }
         this.redrawBoard();
@@ -449,6 +457,7 @@ Black	(0, 0, 0)
 
             PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, "");
             PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, "");
+            PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_DURATION, "0");
         } else {
             PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, this.boardValues);
             PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, this.moveHistory);

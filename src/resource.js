@@ -15,7 +15,8 @@ var res = {
     imgLine : "res/line.png",
     imgArrow : "res/arrow.png",
     imgArrow3D : "res/arrow3d.png",
-    imgBtnBg : "res/btn.png"
+    imgBtnBg : "res/btn.png",
+    imgBtnNarrowBg : "res/btn_narrow.png"
 };
 
 var g_resources = [];

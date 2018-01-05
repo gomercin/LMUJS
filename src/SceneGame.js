@@ -52,21 +52,37 @@ var GameLayer = cc.LayerColor.extend({
         this.gameBoard.surroundingLayer = this;
         this.addChild(this.gameBoard);
 
+        this.gameBoard.updateUndoStatus();
+
         this._totalTime = 0.0;
+
+        if (this._resume == true) {
+            this._totalTime = +PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_DURATION);
+        } 
+        this._lastSavedTime = this._totalTime;        
 
         this.scheduleUpdate( );        
     },
 
     CreateMenu : function() {
         this.topMargin = 75;
-        this.mItemUndo = new cc.MenuItemImage(res.imgUndo, res.imgUndo, res.imgUndo, function(){this.onUndoTouch();}, this);
+
+        this.mItemUndo = new cc.MenuItemImage(res.imgBtnNarrowBg, res.imgBtnNarrowBg, res.imgBtnNarrowBg, function(){this.onUndoTouch();}, this);
         this.mItemUndo.setPosition(CommonUtils.DesignPoint(cc.p(this.winsize.width/4,this.winsize.height - this.topMargin)));
-        this.mItemUndo.setScale(120.0 / this.mItemUndo.getContentSize().width);
+
+        var lblUndo = new cc.LabelTTF('Undo', 'Lucida Fax', 36);//, this.mItemUndo.getContentSize(), cc.TEXT_ALIGNMENT_CENTER, cc.VERTICAL_TEXT_ALIGNMENT_CENTER);
+        lblUndo.setColor(cc.color(0, 0, 0));
+
+        lblUndo.setPosition(this.mItemUndo.getContentSize().width / 2, this.mItemUndo.getContentSize().height / 2);
+        this.mItemUndo.addChild(lblUndo);
         this.mItemUndo.opacity = 100;
 
-        this.mItemMenu = new cc.MenuItemImage(res.imgMenu, res.imgMenu, res.imgMenu, function(){this.onMenuTouch();}, this);
+        this.mItemMenu = new cc.MenuItemImage(res.imgBtnNarrowBg, res.imgBtnNarrowBg, res.imgBtnNarrowBg, function(){this.onMenuTouch();}, this);
         this.mItemMenu.setPosition(CommonUtils.DesignPoint(cc.p(3*this.winsize.width/4,this.winsize.height - this.topMargin)));
-        this.mItemMenu.setScale(120.0 / this.mItemMenu.getContentSize().width);
+        var lblMenu = new cc.LabelTTF('Menu', 'Lucida Fax', 36);
+        lblMenu.setColor(cc.color(0,0,0));
+        lblMenu.setPosition(this.mItemMenu.getContentSize().width / 2, this.mItemMenu.getContentSize().height / 2);
+        this.mItemMenu.addChild(lblMenu);
 
         this.lblTimer = new cc.LabelTTF('00:00:00', 'Lucida Fax', 30);
         this.lblTimer.setPosition(CommonUtils.DesignPoint(cc.p(320, this.winsize.height - 780)));
@@ -101,5 +117,11 @@ var GameLayer = cc.LayerColor.extend({
         var msecStr = (msec < 10 ? "0" : "") + msec;
         
         this.lblTimer.setString(minStr + ":" + secStr + ":" + msecStr);
+
+
+        if (this._totalTime - this._lastSavedTime > 1) {
+            PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_DURATION, this._totalTime);
+            this._lastSavedTime = this._totalTime;
+        }
     }
 });
