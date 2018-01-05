@@ -318,7 +318,7 @@ Black	(0, 0, 0)
     },
 
     gameMask: function () {
-        var halfWidth = this.boardWidth / 2.0 - 2;
+        var halfWidth = this.boardWidth / 2.0 - 3;
         var shape = new cc.DrawNode();
 
         var rectangle = [cc.p(-halfWidth, -halfWidth),
