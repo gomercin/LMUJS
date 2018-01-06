@@ -30,7 +30,8 @@ var GameBoard = cc.Node.extend({
 
     surroundingLayer: 0,
 
-    isResuming: false,
+    isResuming : false,
+    isSolved : false,
 
     ctor: function (gameType, gameSize, resume) {
         this._super();
@@ -158,6 +159,9 @@ var GameBoard = cc.Node.extend({
     },
 
     processTouch: function () {
+
+        if (this.isSolved == true) return;
+        
         //do we need to check if touches began and end withing board boundaries?
         //it might be enough to check if it began withing the board to understand which row or column will be moved
         //end position is only used for swipe direction reference,
@@ -209,7 +213,7 @@ var GameBoard = cc.Node.extend({
     },
 
     updateUndoStatus : function() {
-        if (this.surroundingLayer != null && this.moveHistory.length > 0) {
+        if (this.surroundingLayer != null && this.moveHistory.length > 0 && this.isSolved == false) {
             this.surroundingLayer.mItemUndo.opacity = 255;
         } else {
             this.surroundingLayer.mItemUndo.opacity = 100;
@@ -446,6 +450,7 @@ Black	(0, 0, 0)
         }
 
         if (this.moveHistory.length > 0 && isSolved == true) {
+            this.isSolved = true;
             cc.log("SOLVED!");
 
             var label = new cc.LabelTTF('SOLVED!', 'Lucida Fax', 90);
@@ -458,6 +463,9 @@ Black	(0, 0, 0)
             PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, "");
             PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, "");
             PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME_DURATION, "0");
+
+            var event = new cc.EventCustom(CommonEvents.SOLVED);
+            cc.eventManager.dispatchEvent(event);
         } else {
             PersistentStorage.SetValue(GameSettingsKeys.LAST_GAME, this.boardValues);
             PersistentStorage.SetValue(GameSettingsKeys.UNDO_LIST, this.moveHistory);
@@ -611,7 +619,7 @@ Black	(0, 0, 0)
 
     undo: function () {
 
-        if (this.isMoving == true) {
+        if (this.isMoving == true || this.isSolved == true) {
             cc.log("undo: rejected");
             return true;
         }

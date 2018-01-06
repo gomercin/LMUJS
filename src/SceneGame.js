@@ -35,6 +35,7 @@ var GameLayer = cc.LayerColor.extend({
         this._gameSize = gameSize;
         this._gameType = gameType;
         this._resume = resume;
+        this._solved = false;
     },
 
     init:function() {
@@ -59,7 +60,20 @@ var GameLayer = cc.LayerColor.extend({
         if (this._resume == true) {
             this._totalTime = +PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_DURATION);
         } 
-        this._lastSavedTime = this._totalTime;        
+        this._lastSavedTime = this._totalTime;    
+
+        var selfPointer = this;
+        
+        this._gameSolvedListener = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: CommonEvents.SOLVED,
+            callback: function(event){
+                cc.log("solved event");
+                selfPointer._solved = true;
+                cc.eventManager.removeListener(selfPointer._gameSolvedListener);			//remove a listener from cc.eventManager
+            }
+        });    
+        cc.eventManager.addListener(this._gameSolvedListener, 1);
 
         this.scheduleUpdate( );        
     },
@@ -107,6 +121,8 @@ var GameLayer = cc.LayerColor.extend({
     },
 
     update : function(dt) {
+        if (this._solved == true) return;
+
         this._totalTime += dt;
         var min = Math.floor(this._totalTime / 60);
         var sec = Math.floor(this._totalTime % 60);
