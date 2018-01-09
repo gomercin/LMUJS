@@ -15,6 +15,14 @@ var GameScene = cc.Scene.extend({
         this._gameType = gameType;
         this._gameSize = gameSize;
         this._resume = resume;
+
+        if (typeof sdkbox != 'undefined') {
+            cc.log("playing banner ad")
+            
+            sdkbox.PluginSdkboxAds.playAd("AdMob", "home");
+
+            cc.log("after banner ad")
+        } 
     },
 
     onEnter:function () {

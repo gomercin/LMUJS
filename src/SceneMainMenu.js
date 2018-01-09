@@ -39,6 +39,14 @@ var MenuLayer = cc.LayerColor.extend({
 
         this.createMenu();
         this.updateMenu();
+
+        if (typeof sdkbox != 'undefined') {
+            cc.log("playing banner ad")
+            
+            sdkbox.PluginSdkboxAds.playAd("AdMob", "home");
+
+            cc.log("after banner ad")
+        }  
     },
 
     createMenu: function () {
@@ -159,14 +167,14 @@ var MenuLayer = cc.LayerColor.extend({
         cc.log("==game type touched " + gameType);
 
         this._gameType = gameType;
-        this.updateMenu();
+        this.updateMenu();        
     },
 
     onGameSizeTouch: function (increase) {
         cc.log("==game size touched " + increase);
 
         this._gameSize += (increase ? 1 : -1);
-        this.updateMenu();
+        this.updateMenu();     
     },
 
     onResume: function () {

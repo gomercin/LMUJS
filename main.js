@@ -119,7 +119,10 @@ cc.game.onStart = function(){
 
     cc.view.setDesignResolutionSize(final_design_width, final_design_height, cc.ResolutionPolicy.SHOW_ALL);
 
-
+    if (typeof sdkbox != 'undefined') {
+        cc.log("initing ads")
+        sdkbox.PluginSdkboxAds.init();
+    }
     
     //var gl = cc._renderContext;
     //gl.clearColor(1.0, 1.0, 1.0, 1.0);
