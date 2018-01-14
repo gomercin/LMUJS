@@ -66,11 +66,14 @@ var MenuLayer = cc.LayerColor.extend({
         this.mItemRowsGame = new cc.MenuItemImage(res.imgRowsGame, res.imgRowsGame, res.imgRowsGame, function () {
             this.onGameTypeTouch(GameTypeEnum.COLOR_ROWS);
         }, this);
+        this.mItemRowsGame.setScale(160 / this.mItemRowsGame.getContentSize().width);
+
         this.mItemRowsGame.setPosition(CommonUtils.DesignPoint(cc.p(188, this.winsize.height - 324)));
 
         this.mItemColsGame = new cc.MenuItemImage(res.imgColsGame, res.imgColsGame, res.imgColsGame, function () {
             this.onGameTypeTouch(GameTypeEnum.COLOR_BOTH);
         }, this);
+        this.mItemColsGame.setScale(160 / this.mItemColsGame.getContentSize().width);
         this.mItemColsGame.setPosition(CommonUtils.DesignPoint(cc.p(456, this.winsize.height - 324)));
 
         var lblSize = new cc.LabelTTF('size', 'Lucida Fax', 36);
@@ -130,8 +133,8 @@ var MenuLayer = cc.LayerColor.extend({
             this.mItemResume.enabled = true;
         }
 
-        this.mItemRowsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_ROWS ? 255 : 110);
-        this.mItemColsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_BOTH ? 255 : 110);
+        this.mItemRowsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_ROWS ? 255 : 50);
+        this.mItemColsGame.setOpacity(this._gameType == GameTypeEnum.COLOR_BOTH ? 255 : 50);
 
         if (this._gameSize < 3) 
             this._gameSize = 3;
