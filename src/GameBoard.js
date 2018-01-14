@@ -229,6 +229,8 @@ var GameBoard = cc.Node.extend({
             this.isMoving = false;
 
             this.updateUndoStatus();
+            cc.audioEngine.playEffect(res.sndMove);
+
         };
 
         this.leftRightFunc = function () {
@@ -237,6 +239,7 @@ var GameBoard = cc.Node.extend({
             this.isMoving = false;
 
             this.updateUndoStatus();
+            cc.audioEngine.playEffect(res.sndMove);
         };
 
         this.moveLeftAction = new cc.MoveBy(actionDuration, -this.multiplier, 0);

@@ -16,7 +16,8 @@ var res = {
     imgArrow : "res/arrow.png",
     imgArrow3D : "res/arrow3d.png",
     imgBtnBg : "res/btn.png",
-    imgBtnNarrowBg : "res/btn_narrow.png"
+    imgBtnNarrowBg : "res/btn_narrow.png",
+    sndMove : "res/click.wav"
 };
 
 var g_resources = [];
