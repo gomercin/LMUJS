@@ -66,6 +66,8 @@ var GameBoard = cc.Node.extend({
         this.colors = [];
         this.foregroundColors = [];
         this.isMoving = false;
+
+        this.hasStarted = false;
     },
 
     initWithBoardSize: function (boardWidth) {
@@ -612,6 +614,12 @@ Black	(0, 0, 0)
         }
 
         if (typeof saveToHistory === "undefined" || saveToHistory == true) {
+
+            if (this.hasStarted == false) {
+                this.hasStarted = true;
+                var event = new cc.EventCustom(CommonEvents.STARTED);
+                cc.eventManager.dispatchEvent(event);
+            }
             this.moveHistory.push(move);
 
             if (this.surroundingLayer != 0) {

@@ -35,5 +35,5 @@ CommonUtils.CloneSprite = function(sprite) {
 };
 
 var GameTypeEnum = Object.freeze({"COLOR_ROWS":1, "COLOR_BOTH":2, "IMG":3});
-var CommonEvents = Object.freeze({"SOLVED":"event_game_solved"});
+var CommonEvents = Object.freeze({"SOLVED":"event_game_solved", "STARTED":"event_game_started"});
 

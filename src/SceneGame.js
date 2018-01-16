@@ -44,6 +44,7 @@ var GameLayer = cc.LayerColor.extend({
         this._gameType = gameType;
         this._resume = resume;
         this._solved = false;
+        this._started = resume;
     },
 
     init:function() {
@@ -80,8 +81,20 @@ var GameLayer = cc.LayerColor.extend({
                 selfPointer._solved = true;
                 cc.eventManager.removeListener(selfPointer._gameSolvedListener);			//remove a listener from cc.eventManager
             }
-        });    
+        });
+        
+        this._gameStartedListener = cc.EventListener.create({
+            event: cc.EventListener.CUSTOM,
+            eventName: CommonEvents.STARTED,
+            callback: function(event){
+                cc.log("started event");
+                selfPointer._started = true;
+                cc.eventManager.removeListener(selfPointer._gameStartedListener);			
+            }
+        });
+        
         cc.eventManager.addListener(this._gameSolvedListener, 1);
+        cc.eventManager.addListener(this._gameStartedListener, 1);
 
         this.scheduleUpdate( );        
     },
@@ -129,7 +142,7 @@ var GameLayer = cc.LayerColor.extend({
     },
 
     update : function(dt) {
-        if (this._solved == true) return;
+        if (this._solved == true || this._started == false) return;
 
         this._totalTime += dt;
         var min = Math.floor(this._totalTime / 60);
