@@ -17,11 +17,7 @@ var GameScene = cc.Scene.extend({
         this._resume = resume;
 
         if (typeof sdkbox != 'undefined') {
-            cc.log("playing banner ad")
-            
             sdkbox.PluginSdkboxAds.playAd("AdMob", "home");
-
-            cc.log("after banner ad")
         } 
     },
 
@@ -69,7 +65,15 @@ var GameLayer = cc.LayerColor.extend({
         if (this._resume == true) {
             this._totalTime = +PersistentStorage.GetValue(GameSettingsKeys.LAST_GAME_DURATION);
         } 
-        this._lastSavedTime = this._totalTime;    
+        this._lastSavedTime = this._totalTime;
+        
+        this._bestTime = PersistentStorage.GetBestScore(this._gameType, this._gameSize);
+
+        if (this._bestTime == null || this._bestTime == undefined) {
+            this._bestTime = 99999999999;
+        }
+
+        cc.log("best time: " + this._bestTime);
 
         var selfPointer = this;
         
@@ -77,9 +81,13 @@ var GameLayer = cc.LayerColor.extend({
             event: cc.EventListener.CUSTOM,
             eventName: CommonEvents.SOLVED,
             callback: function(event){
-                cc.log("solved event");
                 selfPointer._solved = true;
                 cc.eventManager.removeListener(selfPointer._gameSolvedListener);			//remove a listener from cc.eventManager
+
+                if (selfPointer._totalTime < selfPointer._bestTime) {
+                    cc.log("new record: " + selfPointer._totalTime);
+                    PersistentStorage.SetBestScore(selfPointer._gameType, selfPointer._gameSize, selfPointer._totalTime);
+                }
             }
         });
         
@@ -87,7 +95,6 @@ var GameLayer = cc.LayerColor.extend({
             event: cc.EventListener.CUSTOM,
             eventName: CommonEvents.STARTED,
             callback: function(event){
-                cc.log("started event");
                 selfPointer._started = true;
                 cc.eventManager.removeListener(selfPointer._gameStartedListener);			
             }

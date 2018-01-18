@@ -11,5 +11,15 @@ var PersistentStorage = ({
 
     GetValue : function(key) {
         return JSON.parse(cc.sys.localStorage.getItem(JSON.stringify(key)));
+    },
+
+    GetBestScore : function(gameType, gameSize) {
+        key = gameType * 100 + gameSize;
+        return this.GetValue(key);
+    }, 
+
+    SetBestScore : function(gameType, gameSize, time) {
+        key = gameType * 100 + gameSize;
+        this.SetValue(key, time);
     }
 });

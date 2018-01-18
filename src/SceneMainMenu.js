@@ -41,11 +41,7 @@ var MenuLayer = cc.LayerColor.extend({
         this.updateMenu();
 
         if (typeof sdkbox != 'undefined') {
-            cc.log("playing banner ad")
-            
             sdkbox.PluginSdkboxAds.playAd("AdMob", "home");
-
-            cc.log("after banner ad")
         }  
     },
 
