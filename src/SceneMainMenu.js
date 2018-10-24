@@ -137,24 +137,15 @@ var MenuLayer = cc.LayerColor.extend({
         else if (this._gameSize > 8)
             this._gameSize = 8;
 
-        if (this._gameSize <= 3) {
-            this.mItemReduceGameSize.enabled = false;
-            this.mItemReduceGameSize.opacity = 112;
-        } else 
-        {
-            this.mItemReduceGameSize.enabled = true;
-            this.mItemReduceGameSize.opacity = 255
-        }
-        
-        if (this._gameSize >= 8) {
-            this.mItemIncreaseGameSize.enabled = false;
-            this.mItemIncreaseGameSize.opacity = 112;
-        } else {
-            this.mItemIncreaseGameSize.enabled = true;
-            this.mItemIncreaseGameSize.opacity = 255;
-        }
+        this.updateMenuItemState(this.mItemReduceGameSize, this._gameSize > 3)
+        this.updateMenuItemState(this.mItemIncreaseGameSize, this._gameSize < 8)
 
         this.lblGameSize.setString(this._gameSize);
+    },
+
+    updateMenuItemState: function(item, isEnabled) {
+        item.enabled = isEnabled;
+        item.opacity = isEnabled ? 255 : 112;
     },
 
     onNewGame: function () {
